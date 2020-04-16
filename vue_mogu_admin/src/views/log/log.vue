@@ -23,63 +23,65 @@
           <template slot-scope="props">
             <el-form label-position="left" inline class="demo-table-expand">
 
-              <el-form-item label="请求接口">
-                <span>{{ props.row.classPath + props.row.url }}</span>
-              </el-form-item>
-
-              <el-form-item label="请求参数">
-                <span>{{ props.row.params }}</span>
-              </el-form-item>
-
+              <el-row>
+                <el-form-item label="请求接口">
+                  <span>{{ props.row.classPath + props.row.url }}</span>
+                </el-form-item>
+              </el-row>
+              <el-row>
+                <el-form-item label="请求参数">
+                  <span>{{ props.row.params }}</span>
+                </el-form-item>
+              </el-row>
             </el-form>
           </template>
         </el-table-column>
 
       <el-table-column type="selection"></el-table-column>
 
-      <el-table-column label="序号" width="60">
+      <el-table-column label="序号" width="60" align="center">
 	      <template slot-scope="scope">
 	        <span >{{scope.$index + 1}}</span>
 	      </template>
 	    </el-table-column>
 
-	    <el-table-column label="操作人" width="100">
+	    <el-table-column label="操作人" width="100" align="center">
 	      <template slot-scope="scope">
 	        <span>{{ scope.row.userName }}</span>
 	      </template>
 	    </el-table-column>
 
-      <el-table-column label="请求接口" width="150">
+      <el-table-column label="请求接口" width="150" align="center">
 	      <template slot-scope="scope">
 	        <span>{{ scope.row.url }}</span>
 	      </template>
 	    </el-table-column>
 
-      <el-table-column label="请求方式" width="100">
+      <el-table-column label="请求方式" width="100" align="center">
 	      <template slot-scope="scope">
 	        <span>{{ scope.row.type }}</span>
 	      </template>
 	    </el-table-column>
 
-      <el-table-column label="接口名" width="150">
+      <el-table-column label="接口名" width="150" align="center">
 	      <template slot-scope="scope">
 	        <span>{{ scope.row.operation }}</span>
 	      </template>
 	    </el-table-column>
 
-      <el-table-column label="IP" width="150">
+      <el-table-column label="IP" width="150" align="center">
 	      <template slot-scope="scope">
 	        <span>{{ scope.row.ip }}</span>
 	      </template>
 	    </el-table-column>
 
-      <el-table-column label="IP来源" width="200">
+      <el-table-column label="IP来源" width="200" align="center">
         <template slot-scope="scope">
           <span>{{ scope.row.ipSource }}</span>
         </template>
       </el-table-column>
 
-      <el-table-column label="请求耗时" width="160">
+      <el-table-column label="请求耗时" width="160" align="center">
         <template slot-scope="scope">
           <el-tag v-if="scope.row.spendTime < 2000">{{ scope.row.spendTime}} ms </el-tag>
           <el-tag v-else-if="scope.row.spendTime < 5000 && scope.row.spendTime >= 2000" type="warning">{{ scope.row.spendTime}} ms </el-tag>
@@ -87,13 +89,13 @@
         </template>
       </el-table-column>
 
-	    <el-table-column label="创建时间" width="160">
+	    <el-table-column label="创建时间" width="160" align="center">
 	      <template slot-scope="scope">
 	        <span >{{ scope.row.createTime }}</span>
 	      </template>
 	    </el-table-column>
 
-	   	<el-table-column label="状态" width="100">
+	   	<el-table-column label="状态" width="100" align="center">
 	   	  <template slot-scope="scope">
 		   	  <template v-if="scope.row.status == 1">
 		        <span>正常</span>
@@ -167,7 +169,7 @@ export default {
           }
         ]
       },
-      value5: ""
+      value5: []
     };
   },
   created() {
@@ -175,12 +177,14 @@ export default {
   },
   methods: {
     logList: function() {
-      var params = new URLSearchParams();
-      params.append("userName", this.userName);
-      params.append("operation", this.operation);
-      params.append("startTime", this.value5);
-      params.append("currentPage", this.currentPage);
-      params.append("pageSize", this.pageSize);
+      var params = {};
+      params.userName = this.userName;
+      params.operation = this.operation;
+      if(this.value5.length >= 2) {
+        params.startTime = this.value5[0] + "," + this.value5[1];
+      }
+      params.currentPage = this.currentPage;
+      params.pageSize = this.pageSize;
       getLogList(params).then(response => {
         if(response.code == "success") {
           this.currentPage = response.data.current;

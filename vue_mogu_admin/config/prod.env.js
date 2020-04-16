@@ -2,16 +2,20 @@
 module.exports = {
   NODE_ENV: '"production"',
 
-    //生产环境
-    ADMIN_API: '"http://101.132.194.128:8601"',
-    PICTURE_API: '"http://101.132.194.128:8602"',
-    WEB_API: '"http://101.132.194.128:8603"',
-    Search_API: '"http://localhost:8605"',
-    SOLR_API: '"http://101.132.194.128:8080/solr"',
-    EUREKA_API: '"http://101.132.194.128:8761"',
-    SPRING_BOOT_ADMIN: '"http://101.132.194.128:8606/wallboard"',
-    BASE_IMAGE_URL: '"http://picture.moguit.cn"',
-    BLOG_WEB_URL: '"http://www.moguit.cn"',
+  //生产环境
+  ADMIN_API: '"http://101.132.194.128:8601"',
+  PICTURE_API: '"http://101.132.194.128:8602"',
+  WEB_API: '"http://101.132.194.128:8603"',
+  Search_API: '"http://101.132.194.128:8605"',
+  SPRING_BOOT_ADMIN: '"http://101.132.194.128:8606/wallboard"',
+  SOLR_API: '"http://101.132.194.128:8080/solr"',
+  ELASTIC_SEARCH: '"http://101.132.194.128:5601"',
+  EUREKA_API: '"http://101.132.194.128:8761"',
+  RABBIT_MQ_ADMIN: '"http://101.132.194.128:15672"',
+  DRUID_ADMIN: '"http://101.132.194.128:8601/druid/login.html"',
+  BLOG_WEB_URL: '"http://www.moguit.cn"',
+  // 使用七牛云，不需要添加图片前缀
+  BASE_IMAGE_URL: '""',
 
     //测试环境
     // ADMIN_API: '"http://192.168.1.101:8601"',

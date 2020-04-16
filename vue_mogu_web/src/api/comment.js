@@ -8,6 +8,22 @@ export function getCommentList (params) {
   })
 }
 
+export function getCommentListByUser (params) {
+  return request({
+    url: process.env.WEB_API + '/web/comment/getListByUser',
+    method: 'post',
+    data: params
+  })
+}
+
+export function getPraiseListByUser (params) {
+  return request({
+    url: process.env.WEB_API + '/web/comment/getPraiseListByUser',
+    method: 'post',
+    data: params
+  })
+}
+
 export function addComment (params) {
   return request({
     url: process.env.WEB_API + '/web/comment/add',

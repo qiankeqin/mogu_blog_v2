@@ -1,18 +1,11 @@
 package com.moxi.mogublog.admin.restapi;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.moxi.mogublog.admin.global.MessageConf;
-import com.moxi.mogublog.admin.global.SQLConf;
 import com.moxi.mogublog.admin.global.SysConf;
 import com.moxi.mogublog.admin.log.OperationLogger;
+import com.moxi.mogublog.admin.security.AuthorityVerify;
 import com.moxi.mogublog.utils.ResultUtil;
-import com.moxi.mogublog.utils.StringUtils;
-import com.moxi.mogublog.xo.entity.Role;
 import com.moxi.mogublog.xo.service.RoleService;
 import com.moxi.mogublog.xo.vo.RoleVO;
-import com.moxi.mougblog.base.enums.EStatus;
 import com.moxi.mougblog.base.exception.ThrowableUtils;
 import com.moxi.mougblog.base.validator.group.Delete;
 import com.moxi.mougblog.base.validator.group.GetList;
@@ -46,26 +39,18 @@ public class RoleRestApi {
     @Autowired
     private RoleService roleService;
 
+    @AuthorityVerify
     @ApiOperation(value = "获取角色信息列表", notes = "获取角色信息列表")
     @PostMapping("/getList")
     public String getList(@Validated({GetList.class}) @RequestBody RoleVO roleVO, BindingResult result) {
 
         // 参数校验
         ThrowableUtils.checkParamArgument(result);
-
-        QueryWrapper<Role> queryWrapper = new QueryWrapper<Role>();
-        if (StringUtils.isNotEmpty(roleVO.getKeyword()) && StringUtils.isNotEmpty(roleVO.getKeyword().trim())) {
-            queryWrapper.like(SQLConf.ROLENAEM, roleVO.getKeyword().trim());
-        }
-        queryWrapper.eq(SQLConf.STATUS, EStatus.ENABLE);
-        Page<Role> page = new Page<>();
-        page.setCurrent(roleVO.getCurrentPage());
-        page.setSize(roleVO.getPageSize());
-        IPage<Role> pageList = roleService.page(page, queryWrapper);
         log.info("获取角色信息列表");
-        return ResultUtil.result(SysConf.SUCCESS, pageList);
+        return ResultUtil.result(SysConf.SUCCESS, roleService.getPageList(roleVO));
     }
 
+    @AuthorityVerify
     @OperationLogger(value = "新增角色信息")
     @ApiOperation(value = "新增角色信息", notes = "新增角色信息")
     @PostMapping("/add")
@@ -73,43 +58,21 @@ public class RoleRestApi {
 
         // 参数校验
         ThrowableUtils.checkParamArgument(result);
-
-        String roleName = roleVO.getRoleName();
-        QueryWrapper<Role> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(SQLConf.ROLENAEM, roleName);
-        Role getRole = roleService.getOne(queryWrapper);
-        if (getRole == null) {
-            Role role = new Role();
-            role.setRoleName(roleVO.getRoleName());
-            role.setCategoryMenuUids(roleVO.getCategoryMenuUids());
-            role.setSummary(roleVO.getSummary());
-            role.insert();
-            return ResultUtil.result(SysConf.SUCCESS, MessageConf.INSERT_SUCCESS);
-        }
-        return ResultUtil.result(SysConf.ERROR, MessageConf.ENTITY_EXIST);
+        return roleService.addRole(roleVO);
     }
 
+    @AuthorityVerify
     @OperationLogger(value = "更新角色信息")
     @ApiOperation(value = "更新角色信息", notes = "更新角色信息")
-    @PostMapping("/update")
+    @PostMapping("/edit")
     public String update(@Validated({Update.class}) @RequestBody RoleVO roleVO, BindingResult result) {
 
         // 参数校验
         ThrowableUtils.checkParamArgument(result);
-
-        String uid = roleVO.getUid();
-        Role getRole = roleService.getById(uid);
-        if (getRole == null) {
-            return ResultUtil.result(SysConf.ERROR, MessageConf.PARAM_INCORRECT);
-        }
-        getRole.setRoleName(roleVO.getRoleName());
-        getRole.setCategoryMenuUids(roleVO.getCategoryMenuUids());
-        getRole.setSummary(roleVO.getSummary());
-        getRole.updateById();
-        return ResultUtil.result(SysConf.SUCCESS, MessageConf.UPDATE_SUCCESS);
-
+        return roleService.editRole(roleVO);
     }
 
+    @AuthorityVerify
     @OperationLogger(value = "删除角色信息")
     @ApiOperation(value = "删除角色信息", notes = "删除角色信息")
     @PostMapping("/delete")
@@ -117,11 +80,8 @@ public class RoleRestApi {
 
         // 参数校验
         ThrowableUtils.checkParamArgument(result);
-
-        Role role = roleService.getById(roleVO.getUid());
-        role.setStatus(EStatus.DISABLED);
-        role.updateById();
-        return ResultUtil.result(SysConf.SUCCESS, MessageConf.DELETE_SUCCESS);
+        return roleService.deleteRole(roleVO);
     }
+
 
 }

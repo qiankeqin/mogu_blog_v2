@@ -28,6 +28,12 @@
         <input type="file" id="upload2" style="position:absolute; clip:rect(0 0 0 0);"
                accept="image/png, image/jpeg, image/gif, image/jpg" @change="uploadImg($event,2)">
         <button @click="finish2()" class="btn">裁剪</button>
+
+        <div style="margin-top: 20px">
+          <div>裁剪后的图片</div>
+          <img style="width: 200px" :src="picUrl"/>
+        </div>
+
       </div>
     </div>
 
@@ -35,8 +41,9 @@
 </template>
 
 <script>
+  import {cropperPicture} from "@/api/test"
   import { VueCropper } from 'vue-cropper'
-  // import * as OSS from 'ali-oss';
+  import { getToken } from '@/utils/auth'
   export default {
     components: {
       VueCropper,
@@ -50,6 +57,7 @@
         form: {
           head: ''
         },
+        picUrl: "",
         example2: {
           //img的路径自行修改
           img: '$oss.url + \'/\' + form.head ',
@@ -75,13 +83,41 @@
         this.$refs.cropper2.getCropData((data) => {
           this.modelSrc = data
           this.model = false;
+
           //裁剪后的图片显示
           this.example2.img = this.modelSrc;
+
           // this.toBlob(data)
           // console.log(data)
           // console.log(this.toBlob(data))
 
+          console.log("开始上传", this.toBlob(data))
+
           //将图片上传服务器中
+          let params = new FormData();
+          params.append("file", this.toBlob(data))
+          params.append("token", getToken())
+          params.append("source", "picture")
+          params.append("userUid", "uid00000000000000000000000000000000")
+          params.append("adminUid", "uid00000000000000000000000000000000")
+          params.append("projectName", "blog")
+          params.append("sortName", "admin")
+
+          cropperPicture(params).then(response => {
+            console.log(response)
+            if(response.code == "success") {
+              this.$message({
+                type: "success",
+                data: "裁剪成功"
+              })
+              this.picUrl = response.data[0].url;
+            } else {
+              this.$message({
+                type: "success",
+                data: response.data
+              })
+            }
+          });
 
         })
 
@@ -115,6 +151,7 @@
         // reader.readAsDataURL(file)
         // 转化为blobcs
         reader.readAsArrayBuffer(file)
+
       },
       // base64转blob
       toBlob(ndata) {

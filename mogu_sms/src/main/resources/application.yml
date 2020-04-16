@@ -3,10 +3,8 @@ server:
   port: 8604
 
 #阿里大于
-accessKeyId: LTAI99t3H0yGpC8E#修改成自己的
-accessKeySecret: RQVwPjFJks3v8ZgIYvFRjDN2KXar9U#修改成自己的
-
-
+accessKeyId: XXXXXXXXXXXXXXXXXXXXX #修改成自己的
+accessKeySecret: XXXXXXXXXXXXXXXXXXXXXXX #修改成自己的
 
 #spring
 spring:
@@ -16,7 +14,10 @@ spring:
     cache: true   #关闭缓存
   application:
     name: mogu-sms
-
+  security:
+    user:
+      name: user
+      password: password123
   #redis
   redis:
     host: 127.0.0.1 #redis的主机ip
@@ -34,16 +35,19 @@ spring:
     username: mogublog@163.com
     password: a1313375 #授权码开启SMTP服务里设置
     host: smtp.163.com
-
+    default-encoding: UTF-8
     properties:
       mail:
         smtp:
-          auth: true
-          starttls:
-            enable: true
-            required: true
           ssl:
             enable: true
+          socketFactory:
+            port: 465
+            class: javax.net.ssl.SSLSocketFactory
+          auth: true
+          starttls:
+            enable: false
+
   boot:
     admin:
       client:
@@ -51,6 +55,19 @@ spring:
         url: http://localhost:8606
         username: user
         password: password123
+        instance:
+          service-base-url: http://localhost:8604
+
+  # sleuth 配置
+  sleuth:
+    web:
+      client:
+        enabled: true
+    sampler:
+      probability: 1.0 # 采样比例为: 0.1(即10%),设置的值介于0.0到1.0之间，1.0则表示全部采集。
+  # zipkin 配置
+  zipkin:
+    base-url: http://localhost:9411  # 指定了Zipkin服务器的地址
 
 eureka:
   client:

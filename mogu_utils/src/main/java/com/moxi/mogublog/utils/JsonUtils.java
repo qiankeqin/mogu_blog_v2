@@ -54,6 +54,25 @@ public class JsonUtils {
     }
 
     /**
+     * 将Object转换成Map
+     *
+     * @param obj
+     * @return
+     */
+    public static Map<String, Object> objectToMap(Object obj) {
+
+        try {
+            Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss").create();
+            String json = gson.toJson(obj);
+            return jsonToMap(json);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+
+    /**
      * 把json字符串转化为对象
      *
      * @param jsonString
@@ -153,6 +172,32 @@ public class JsonUtils {
     }
 
     /**
+     * 将Json转换成Map<String, ?>
+     *
+     * @param json
+     * @param clazz
+     * @return
+     */
+    public static Map<String, ?> jsonToMap(String json, Class<?> clazz) {
+
+        Gson gson = new GsonBuilder()
+                .excludeFieldsWithModifiers(Modifier.FINAL, Modifier.TRANSIENT, Modifier.STATIC)
+                .setDateFormat("yyyy-MM-dd HH:mm:ss")
+                .serializeNulls()
+                .create();
+        Map<String, ?> map = null;
+        try {
+            Type type = new TypeToken<Map<String, ?>>() {
+            }.getType();
+
+            map = gson.fromJson(json, type);
+        } catch (JsonSyntaxException e) {
+            e.printStackTrace();
+        }
+        return map;
+    }
+
+    /**
      * 将map转换成pojo
      *
      * @param map
@@ -220,7 +265,7 @@ public class JsonUtils {
      * @param t pojo对象
      * @return
      */
-    public static <T>  Map<String, Object> pojoToMap(T t){
+    public static <T> Map<String, Object> pojoToMap(T t) {
         Map<String, Object> result = new HashMap<String, Object>();
         Method[] methods = t.getClass().getMethods();
         try {
@@ -230,7 +275,7 @@ public class JsonUtils {
                 if (paramClass.length > 0) {
                     continue;
                 }
-                String methodName = method.getName() ;
+                String methodName = method.getName();
                 if (methodName.startsWith("get")) {
                     Object value = method.invoke(t);
                     result.put(methodName, value);

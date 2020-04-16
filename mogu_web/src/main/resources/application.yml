@@ -4,11 +4,12 @@ server:
 
 #阿里大于
 templateCode: SMS_XXXXXX #短信模板编号
-signName: 蘑菇博客
-PROJECT_NAME_EN: moguBlog
 
-moguBlog:
-  email: mogublog@163.com
+signName: 蘑菇博客
+# 项目英文名
+PROJECT_NAME_EN: moguBlog
+#项目名称
+PROJECT_NAME: 蘑菇博客
 
 data:
   # 门户页面
@@ -24,10 +25,20 @@ file:
   upload:
     path: D:/mogu_blog/data/
 
+# 蘑菇博客登录默认密码
+DEFAULE_PWD: mogu2018
+
+#请求限制参数
+request-limit:
+  start: true # 是否开启请求限制
+  amount: 100 # 100次
+  time: 60000 # 1分钟
+
 #博客相关配置
 BLOG:
   HOT_COUNT: 5 #热门博客数量
   HOT_TAG_COUNT: 20 #热门标签数量
+  FRIENDLY_LINK_COUNT: 20 #友情链接数
   NEW_COUNT: 15 #最新博客数据
   FIRST_COUNT: 5 #一级推荐
   SECOND_COUNT: 2 #二级推荐
@@ -35,13 +46,26 @@ BLOG:
   FOURTH_COUNT: 5 #四级推荐
   USER_TOKEN_SURVIVAL_TIME: 168 # toekn令牌存活时间, 7天  168 = 7*24
 
+  # 原创模板
+  ORIGINAL_TEMPLATE: 本文为蘑菇博客原创文章，转载无需和我联系，但请注明来自蘑菇博客 http://www.moguit.cn
+  # 转载模板
+  REPRINTED_TEMPLATE: 本着开源共享、共同学习的精神，本文转载自 %S ，版权归 %S 所有，如果侵权之处，请联系博主进行删除，谢谢~
 
 #spring
 spring:
   jmx:
     default-domain: mogu_web
-  thymeleaf:
-    cache: true   #关闭缓存
+  # freemarker相关配置
+  freemarker:
+    charset: utf-8
+    suffix: .ftl
+    content-type: text/html
+    template-loader-path: classpath:/templates
+  # jackson配置响应时间格式、时区
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: Asia/Shanghai
+
   application:
     name: mogu-web
   security:
@@ -53,7 +77,7 @@ spring:
   datasource:
     username: root
     password: root
-    url: jdbc:mysql://localhost:3306/mogu_blog?useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&transformedBitIsBoolean=true&useSSL=false&serverTimezone=GMT%2B8
+    url: jdbc:mysql://localhost:3306/mogu_blog?useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&transformedBitIsBoolean=true&useSSL=false&serverTimezone=Asia/Shanghai
     driver-class-name: com.mysql.cj.jdbc.Driver
     type: com.alibaba.druid.pool.DruidDataSource
 
@@ -100,6 +124,12 @@ spring:
     host: 127.0.0.1 #redis的主机ip
     port: 6379
 
+  rabbitmq:
+    host: 127.0.0.1 #rabbitmq的主机ip
+    port: 5672
+    username: guest
+    password: guest
+
   boot:
     admin:
       client:
@@ -107,6 +137,19 @@ spring:
         url: http://localhost:8606
         username: user
         password: password123
+      instance:
+        service-base-url: http://localhost:8603
+
+  # sleuth 配置
+  sleuth:
+    web:
+      client:
+        enabled: true
+    sampler:
+      probability: 1.0 # 采样比例为: 0.1(即10%),设置的值介于0.0到1.0之间，1.0则表示全部采集。
+  # zipkin 配置
+  zipkin:
+    base-url: http://localhost:9411  # 指定了Zipkin服务器的地址
 
 #eureka相关配置
 eureka:
@@ -123,8 +166,11 @@ eureka:
     lease-renewal-interval-in-seconds: 5
 
 # 或者：
-feign.hystrix.enabled: false ## 索性禁用feign的hystrix支持
-
+feign.hystrix.enabled: false # 索性禁用feign的hystrix支持
+# 设置feign调用超时时间
+ribbon:
+  ReadTimeout: 20000
+  ConnectTimeout: 20000
 
 management:
   endpoints:
@@ -139,7 +185,7 @@ management:
 mybatis-plus:
   mapper-locations: classpath:/mapper/*Mapper.xml
   #实体扫描，多个package用逗号或者分号分隔
-  typeAliasesPackage: com.moxi.mogublog.xo.entity
+  typeAliasesPackage: com.moxi.mogublog.commons.entity
   global-config:
     # 数据库相关配置
     db-config:
@@ -165,9 +211,9 @@ mybatis-plus:
 # 第三方登录
 justAuth:
   clientId:
-    gitee: bd8238be8154932860aab5b1d2594f00d5472970b6d72f83f338eecb474d6898
-    github: 4fbf8a5fe687887c2549
+    gitee: ec2dba332701caa209935512c69fc7962530b8619acd9b6cb03106a7c13c1c5e
+    github: c99bfe31f8774ec8e242
   clientSecret:
-    gitee: 39f64142da6819e394b6d093984cec39d41e47eb5fd824f49fc0c24bbcbd8ec7
-    github: 7318a7bea7a5b006a97ac8e7758d130ce04e622e
+    gitee: 993930de16b61b8146f7d30c693afd328b4d42116cf2da748f275077e4ef5e47
+    github: ec088d14ab8076e2beed58fcb95e37a0fc586618
 

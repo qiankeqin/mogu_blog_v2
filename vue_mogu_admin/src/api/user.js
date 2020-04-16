@@ -8,6 +8,14 @@ export function getUserList(params) {
   })
 }
 
+export function editUser(params) {
+  return request({
+    url: process.env.ADMIN_API + '/user/edit',
+    method: 'post',
+    data: params
+  })
+}
+
 export function deleteUser(params) {
   return request({
     url: process.env.ADMIN_API + '/user/delete',
@@ -16,9 +24,9 @@ export function deleteUser(params) {
   })
 }
 
-export function freezeUser(params) {
+export function resetUserPassword(params) {
   return request({
-    url: process.env.ADMIN_API + '/user/freeze',
+    url: process.env.ADMIN_API + '/user/resetUserPassword',
     method: 'post',
     data: params
   })

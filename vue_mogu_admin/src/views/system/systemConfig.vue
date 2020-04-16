@@ -11,22 +11,23 @@
           label-position="left"
           :model="form"
           label-width="120px"
-          ref="from"
+          :rules="rules"
+          ref="form"
         >
-          <el-form-item label="本地图片域名">
-            <el-input v-model="form.localPictureBaseUrl" style="width: 400px"></el-input>
+          <el-form-item label="本地图片域名" prop="localPictureBaseUrl">
+            <el-input v-model="form.localPictureBaseUrl" auto-complete="new-password" style="width: 400px"></el-input>
           </el-form-item>
 
-          <el-form-item label="七牛云图片域名">
-            <el-input v-model="form.qiNiuPictureBaseUrl" style="width: 400px"></el-input>
+          <el-form-item label="七牛云图片域名" prop="qiNiuPictureBaseUrl">
+            <el-input v-model="form.qiNiuPictureBaseUrl" auto-complete="new-password" style="width: 400px"></el-input>
           </el-form-item>
 
           <el-form-item label="七牛云公钥">
-            <el-input v-model="form.qiNiuAccessKey" style="width: 400px"></el-input>
+            <el-input v-model="form.qiNiuAccessKey" auto-complete="new-password" style="width: 400px"></el-input>
           </el-form-item>
 
           <el-form-item label="七牛云私钥">
-            <el-input type="password" v-model="form.qiNiuSecretKey" style="width: 400px"></el-input>
+            <el-input type="password" v-model="form.qiNiuSecretKey" auto-complete="new-password" style="width: 400px"></el-input>
           </el-form-item>
 
           <el-form-item label="上传空间">
@@ -34,38 +35,25 @@
           </el-form-item>
 
           <el-form-item label="存储区域">
-            <el-select v-model="form.qiNiuArea" placeholder="请选择存储区域">
-              <el-option v-for="item in options"
-                         :key="item.value"
-                         :label="item.label"
-                         :value="item.value"></el-option>
+            <el-select v-model="form.qiNiuArea" placeholder="请选择存储区域" clearable>
+              <el-option v-for="item in areaDictList"
+                         :key="item.dictValue"
+                         :label="item.dictLabel"
+                         :value="item.dictValue"></el-option>
             </el-select>
           </el-form-item>
 
           <el-form-item label="图片上传七牛云">
-            <el-switch
-              v-model="form.uploadQiNiu"
-              active-text="是"
-              inactive-text="否">
-            </el-switch>
+            <el-radio v-for="item in yesNoDictList" :key="item.uid" v-model="form.uploadQiNiu" :label="item.dictValue" border size="medium">{{item.dictLabel}}</el-radio>
           </el-form-item>
 
           <el-form-item label="图片上传本地">
-            <el-switch
-              v-model="form.uploadLocal"
-              active-text="是"
-              inactive-text="否">
-            </el-switch>
+            <el-radio v-for="item in yesNoDictList" :key="item.uid" v-model="form.uploadLocal" :label="item.dictValue" border size="medium">{{item.dictLabel}}</el-radio>
           </el-form-item>
 
+
           <el-form-item label="图片显示优先级">
-            <el-switch
-              v-model="form.picturePriority"
-              active-text="七牛云"
-              inactive-text="本地"
-              active-color="#13ce66"
-              inactive-color="#ff4949">
-            </el-switch>
+            <el-radio v-for="item in picturePriorityDictList" :key="item.uid" v-model="form.picturePriority" :label="item.dictValue" border size="medium">{{item.dictLabel}}</el-radio>
           </el-form-item>
 
           <el-form-item>
@@ -78,7 +66,7 @@
       <el-tab-pane name="two">
         <span slot="label"><i class="el-icon-edit"></i> 邮箱配置</span>
         <el-form style="margin-left: 20px;" label-position="left"   label-width="80px" >
-          <el-form-item label="邮箱" prop="oldPwd">
+          <el-form-item label="邮箱" prop="email">
             <el-input  v-model="form.email" style="width: 400px"></el-input>
           </el-form-item>
 
@@ -101,6 +89,91 @@
           <el-form-item>
             <el-button type="primary" @click="submitForm()">保 存</el-button>
           </el-form-item>
+        </el-form>
+      </el-tab-pane>
+
+      <el-tab-pane name="three">
+        <span slot="label"><i class="el-icon-edit"></i> Redis管理</span>
+        <el-form style="margin-left: 20px;" label-position="left"   label-width="120px" >
+
+          <aside>
+            Redis管理主要用于清空一些缓存数据<br/>
+            用户首次部署时，可以使用清空全部，把Redis中的缓存一键清空<br/>
+          </aside>
+
+          <el-form-item label="全部">
+            <el-row>
+              <el-col :span="6">
+                <el-button type="danger" @click="cleanRedis('ALL')">清空全部</el-button>
+              </el-col>
+            </el-row>
+          </el-form-item>
+
+          <el-form-item label="博客相关">
+            <el-row>
+              <el-col :span="3">
+                <el-button type="primary" @click="cleanRedis('BLOG_CLICK')">清空点击量</el-button>
+              </el-col>
+
+              <el-col :span="3">
+                <el-button type="success" @click="cleanRedis('BLOG_PRAISE')">清空点赞量</el-button>
+              </el-col>
+
+              <el-col :span="3">
+                <el-button type="info" @click="cleanRedis('BLOG_LEVEL')">清空推荐博客</el-button>
+              </el-col>
+
+              <el-col :span="3">
+                <el-button type="warning" @click="cleanRedis('HOT_BLOG')">清空热门博客</el-button>
+              </el-col>
+
+              <el-col :span="3">
+                <el-button type="danger" @click="cleanRedis('NEW_BLOG')">清空最新博客</el-button>
+              </el-col>
+            </el-row>
+          </el-form-item>
+
+          <el-form-item label="分类和归档相关">
+            <el-row>
+              <el-col :span="3">
+                <el-button type="primary" @click="cleanRedis('MONTH_SET')">清空分类日期</el-button>
+              </el-col>
+
+              <el-col :span="3">
+                <el-button type="success" @click="cleanRedis('BLOG_SORT_BY_MONTH')">清空分类数据</el-button>
+              </el-col>
+
+              <el-col :span="3">
+                <el-button type="info" @click="cleanRedis('BLOG_SORT_CLICK')">清空分类点击量</el-button>
+              </el-col>
+
+              <el-col :span="3">
+                <el-button type="warning" @click="cleanRedis('TAG_CLICK')">清空标签点击量</el-button>
+              </el-col>
+            </el-row>
+          </el-form-item>
+
+
+          <el-form-item label="系统相关">
+            <el-row>
+              <el-col :span="3">
+                <el-button type="primary" @click="cleanRedis('REDIS_DICT_TYPE')">清空字典</el-button>
+              </el-col>
+
+              <el-col :span="3">
+                <el-button type="success" @click="cleanRedis('ADMIN_VISIT_MENU')">清空角色访问菜单</el-button>
+              </el-col>
+
+              <el-col :span="3">
+                <el-button type="info" @click="cleanRedis('userToken')">清空用户Token</el-button>
+              </el-col>
+
+              <el-col :span="3">
+                <el-button type="warning" @click="cleanRedis('REQUEST_LIMIT')">清空接口请求限制</el-button>
+              </el-col>
+            </el-row>
+          </el-form-item>
+
 
         </el-form>
       </el-tab-pane>
@@ -111,30 +184,30 @@
 </template>
 
 <script>
-import { getSystemConfig, editSystemConfig } from "@/api/systemConfig";
-
+import { getSystemConfig, editSystemConfig, cleanRedisByKey } from "@/api/systemConfig";
+import {getListByDictTypeList} from "@/api/sysDictData"
+import { Loading } from 'element-ui';
 export default {
   data() {
     return {
       form: {
 
       },
-      options: [{
-        value: 'z0',
-        label: '华东'
-      }, {
-        value: 'z1',
-        label: '华北'
-      }, {
-        value: 'z2',
-        label: '华南'
-      }, {
-        value: 'na0',
-        label: '北美'
-      }, {
-        value: 'as0',
-        label: '东南亚'
-      }],
+      areaDictList: [], //存储区域字典
+      yesNoDictList: [], //是否字典
+      picturePriorityDictList: [], //图片显示优先级字典
+      loadingInstance: null, // loading对象
+      rules: {
+        localPictureBaseUrl: [
+          {pattern: /^((https|http|ftp|rtsp|mms)?:\/\/)[^\s]+/, message: '请输入正确的域名'},
+        ],
+        qiNiuPictureBaseUrl: [
+          {pattern: /^((https|http|ftp|rtsp|mms)?:\/\/)[^\s]+/, message: '请输入正确的域名'},
+        ],
+        email: [
+          {pattern: /\w[-\w.+]*@([A-Za-z0-9][-A-Za-z0-9]+\.)+[A-Za-z]{2,14}/, message: '请输入正确的邮箱'},
+        ],
+      }
     };
   },
   watch: {
@@ -144,100 +217,113 @@ export default {
 
   },
   created() {
+    this.loadingInstance = Loading.service({ fullscreen: true, text:'正在努力加载中~' });
+    // 获取字典
+    this.getDictList()
 
+    // 获取系统配置
     this.getSystemConfigList()
   },
   methods: {
+    /**
+     * 字典查询
+     */
+    getDictList: function () {
+
+      var dictTypeList =  ['sys_yes_no', 'sys_picture_priority', 'sys_storage_region']
+
+      getListByDictTypeList(dictTypeList).then(response => {
+        if (response.code == "success") {
+          var dictMap = response.data;
+
+          this.areaDictList = dictMap.sys_storage_region.list
+
+          this.yesNoDictList = dictMap.sys_yes_no.list
+
+          this.picturePriorityDictList = dictMap.sys_picture_priority.list
+
+          this.loadingInstance.close();
+        } else {
+          this.loadingInstance.close();
+        }
+      });
+    },
     getSystemConfigList: function() {
       getSystemConfig().then(response => {
         if (response.code == "success") {
           if (response.data) {
-
-            // 进行一些转换
-            var form = response.data;
-
-            this.form = this.formFormat(form, 1)
-
+            this.form = response.data;
           }
         }
       });
     },
-    /**
-     * 格式化form，type = 1 为将 状态转换成true false
-     * @param form
-     * @param type
-     * @returns {*}
-     */
-    formFormat(form, type) {
-
-      if(type === 1) {
-
-        if(form.uploadLocal === "1") {
-          form.uploadLocal = true;
-        } else {
-          form.uploadLocal = false;
-        }
-
-        if(form.uploadQiNiu === "1") {
-          form.uploadQiNiu = true;
-        } else {
-          form.uploadQiNiu = false;
-        }
-
-        if(form.picturePriority === "1") {
-          form.picturePriority = true;
-        } else {
-          form.picturePriority = false;
-        }
-
-      } else {
-
-        if(form.uploadLocal === true) {
-          form.uploadLocal = "1";
-        } else {
-          form.uploadLocal = "0";
-        }
-
-        if(form.uploadQiNiu === true) {
-          form.uploadQiNiu = "1";
-        } else {
-          form.uploadQiNiu = "0";
-        }
-
-        if(form.picturePriority === true) {
-          form.picturePriority = "1";
-        } else {
-          form.picturePriority = "0";
-        }
-      }
-
-      return form;
-    },
-    submitForm: function() {
-      var form = this.form
-      form = this.formFormat(form , 0)
-      editSystemConfig(form).then(res => {
-        console.log(res);
-        if (res.code = "success") {
+    cleanRedis: function(key) {
+      console.log(key)
+      let params = []
+      params.push(key)
+      cleanRedisByKey(params).then(response => {
+        if(response.code == "success") {
           this.$message({
-            type: "info",
-            message: res.data
-          });
+            type: "success",
+            message: response.data
+          })
         } else {
           this.$message({
             type: "error",
-            message: res.data
+            message: response.data
+          })
+        }
+      })
+    },
+    submitForm: function() {
+      this.$refs.form.validate((valid) => {
+        if(!valid) {
+          console.log("校验出错");
+        } else {
+          editSystemConfig(this.form).then(res => {
+            console.log(res);
+            if (res.code = "success") {
+              this.$message({
+                type: "success",
+                message: res.data
+              });
+            } else {
+              this.$message({
+                type: "warning",
+                message: res.data
+              });
+            }
           });
         }
-        this.getSystemConfigList();
-      });
+      })
     },
 
   }
 };
 </script>
 
-<style>
+<style lang="scss">
+  aside {
+    background: #eef1f6;
+    padding: 8px 24px;
+    margin-bottom: 20px;
+    border-radius: 2px;
+    display: block;
+    line-height: 32px;
+    font-size: 16px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+    color: #2c3e50;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 
+  a {
+    color: #337ab7;
+    cursor: pointer;
+
+  &:hover {
+     color: rgb(32, 160, 255);
+   }
+  }
+  }
 </style>
 

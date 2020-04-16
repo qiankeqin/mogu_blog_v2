@@ -10,17 +10,15 @@ spring:
       name: user
       password: password123
   data:
-    #    elasticsearch:
-    #      cluster-name: elasticsearch
-    #      cluster-nodes: localhost:9300
-    solr:
-      host: http://localhost:8080/solr
-      core: collection1
-      repositories:
-        enabled: true
+    elasticsearch:
+      cluster-name: elasticsearch
+      cluster-nodes: localhost:9300
+  #    solr:
+  #      host: http://localhost:8080/solr
+  #      core: collection1
+  #      repositories:
+  #        enabled: true
 
-  #  jackson:
-  #    default-property-inclusion: non_null
   boot:
     admin:
       client:
@@ -28,6 +26,19 @@ spring:
         url: http://localhost:8606
         username: user
         password: password123
+      instance:
+        service-base-url: http://localhost:8605
+
+  # sleuth 配置
+  sleuth:
+    web:
+      client:
+        enabled: true
+    sampler:
+      probability: 1.0 # 采样比例为: 0.1(即10%),设置的值介于0.0到1.0之间，1.0则表示全部采集。
+  # zipkin 配置
+  zipkin:
+    base-url: http://localhost:9411  # 指定了Zipkin服务器的地址
 
 eureka:
   client:

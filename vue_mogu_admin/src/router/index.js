@@ -104,6 +104,12 @@ export const constantRouterMap = [
         name: '菜单管理',
         component: () => import('@/views/authority/categoryMenu'),
         meta: { title: '菜单管理', icon: 'authority' }
+      },
+      {
+        path: 'button',
+        name: '按钮管理',
+        component: () => import('@/views/authority/button'),
+        meta: { title: '按钮管理', icon: 'authority' }
       }
     ]
   },
@@ -217,6 +223,19 @@ export const constantRouterMap = [
         meta: { title: '友情链接', icon: 'blogLink' }
       },
       {
+        path: 'sysDictType',
+        name: '字典管理',
+        component: () => import('@/views/system/SysDictType'),
+        meta: { title: '字典管理', icon: 'web' }
+      },
+      {
+        path: 'SysDictData',
+        name: '字典数据',
+        hidden: true, // 隐藏
+        component: () => import('@/views/system/SysDictData'),
+        meta: { title: '字典数据', icon: 'web' }
+      },
+      {
         path: 'webConfig',
         name: '网站配置',
         component: () => import('@/views/system/webConfig'),
@@ -305,6 +324,12 @@ export const constantRouterMap = [
         name: 'SpringBootAdmin',
         component: () => import('@/views/monitor/SpringBootAdmin'),
         meta: { title: 'SpringBootAdmin', icon: 'log' }
+      },
+      {
+        path: 'Zipkin',
+        name: 'Zipkin',
+        component: () => import('@/views/monitor/Zipkin'),
+        meta: { title: 'Zipkin链路追踪', icon: 'log' }
       },
       {
         path: 'Druid',

@@ -8,18 +8,20 @@
   import { getToken } from '@/utils/auth'
 import CKEDITOR from 'CKEDITOR';
 export default {
-  props: ["content"],
+  props: ["content", "height"],
   mounted() {
     var that = this;
 
     //使用ckeditor替换textarea，设置代码块风格为 zenburn
+    // 上传时，携带token信息，以便于被feign拦截后传递给mogu-admin获取七牛云相关配置
     CKEDITOR.replace('editor',
-      {height: '275px',
+      {height: this.height,
         width: '100%',
         toolbar: 'toolbar_Full',
         codeSnippet_theme: 'zenburn',
-        filebrowserImageUploadUrl: 'http://localhost:8602/ckeditor/imgUpload?token=' + getToken(),
-        filebrowserUploadUrl: 'http://localhost:8602/ckeditor/imgUpload?token=' + getToken(),
+        filebrowserImageUploadUrl: process.env.PICTURE_API + '/ckeditor/imgUpload?token=' + getToken(),
+        filebrowserUploadUrl: process.env.PICTURE_API + '/ckeditor/imgUpload?token=' + getToken(),
+        pasteUploadFileApi: process.env.PICTURE_API + '/ckeditor/imgUploadByUrl?token=' + getToken(),
       });
 
     this.editor = CKEDITOR.instances.editor;
@@ -31,19 +33,6 @@ export default {
         that.fun();
       }, 1000);
     });
-
-    // that.editor.on('fileUploadRequest', function (evt) {
-    //   let xhr = evt.data.fileLoader.xhr;
-    //   console.log('文件上传请求：', evt);
-    //   xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8");
-    //   xhr.setRequestHeader('Cache-Control', 'no-cache');
-    //   let accessToken = sessionStorage.getItem('accessToken');
-    //   if (accessToken) {
-    //     xhr.setRequestHeader('Authorization', `Bearer ${sessionStorage.getItem('accessToken')}`);
-    //   }
-    //   xhr.withCredentials = true;
-    // });
-
 
   },
   created() {

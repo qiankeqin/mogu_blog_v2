@@ -11,55 +11,55 @@
     <el-table :data="tableData"  style="width: 100%" @selection-change="handleSelectionChange">
       <el-table-column type="selection"></el-table-column>
 
-      <el-table-column label="序号" width="60">
+      <el-table-column label="序号" width="60" align="center">
 	      <template slot-scope="scope">
 	        <span >{{scope.$index + 1}}</span>
 	      </template>
 	    </el-table-column>
 
-	   	<el-table-column label="标题图" width="160">
+	   	<el-table-column label="标题图" width="160" align="center">
 	      <template slot-scope="scope">
-	      	<img  v-if="scope.row.photoList" :src="BASE_IMAGE_URL + scope.row.photoList[0]" style="width: 100px;height: 100px;"/>
+	      	<img  v-if="scope.row.photoList" :src="BASE_IMAGE_URL + scope.row.photoList[0]" style="width: 105px;height: 70px;"/>
 	      </template>
 	    </el-table-column>
 
-      <el-table-column label="名称" width="160">
+      <el-table-column label="名称" width="160" align="center">
         <template slot-scope="scope">
           <span>{{ scope.row.name }}</span>
         </template>
       </el-table-column>
 
-      <el-table-column label="分类名" width="160">
+      <el-table-column label="分类名" width="160" align="center">
 	      <template slot-scope="scope">
           <el-tag type="danger">{{ scope.row.resourceSort.sortName }}</el-tag>
 	      </template>
 	    </el-table-column>
 
-      <el-table-column label="简介" width="160">
+      <el-table-column label="简介" width="160" align="center">
 	      <template slot-scope="scope">
 	        <span>{{ scope.row.summary }}</span>
 	      </template>
 	    </el-table-column>
 
-      <el-table-column label="点击数" width="100">
+      <el-table-column label="点击数" width="100" align="center">
 	      <template slot-scope="scope">
 	        <span>{{ scope.row.clickCount }}</span>
 	      </template>
 	    </el-table-column>
 
-      <el-table-column label="百度云路径" width="200">
+      <el-table-column label="百度云路径" width="200" align="center">
 	      <template slot-scope="scope">
 	        <span>{{ scope.row.baiduPath }}</span>
 	      </template>
 	    </el-table-column>
 
-	    <el-table-column label="创建时间" width="160">
+	    <el-table-column label="创建时间" width="160" align="center">
 	      <template slot-scope="scope">
 	        <span >{{ scope.row.createTime }}</span>
 	      </template>
 	    </el-table-column>
 
-	   	<el-table-column label="状态" width="100">
+	   	<el-table-column label="状态" width="100" align="center">
 	   	  <template slot-scope="scope">
 		   	  <template v-if="scope.row.status == 1">
 		        <span>正常</span>
@@ -93,51 +93,57 @@
     </div>
 
 	  <!-- 添加或修改对话框 -->
-		<el-dialog :title="title" :visible.sync="dialogFormVisible">
-		  <el-form :model="form">
+		<el-dialog :title="title" :visible.sync="dialogFormVisible" fullscreen="">
+		  <el-form :model="form" :rules="rules" ref="form">
 
 				<el-form-item label="图片" :label-width="formLabelWidth">
 	    		<div class="imgBody" v-if="form.photoList">
 	    		  	<i class="el-icon-error inputClass" v-show="icon" @click="deletePhoto()" @mouseover="icon = true"></i>
-	    			<img @mouseover="icon = true" @mouseout="icon = false" v-bind:src="BASE_IMAGE_URL + form.photoList[0]" style="display:inline; width: 150px;height: 150px;"/>
+	    			<img @mouseover="icon = true" @mouseout="icon = false" v-bind:src="BASE_IMAGE_URL + form.photoList[0]" style="display:inline; width: 195px;height: 105px;"/>
 	    		</div>
 	    		<div v-else class="uploadImgBody" @click="checkPhoto">
  		 			<i class="el-icon-plus avatar-uploader-icon"></i>
 		    	</div>
 		    </el-form-item>
 
-        <el-form-item label="分类" :label-width="formLabelWidth" required>
-          <el-select
-            v-model="form.resourceSortUid"
-            size="small"
-            placeholder="请选择"
-            style="width:150px"
-          >
-            <el-option
-              v-for="item in resourceSortData"
-              :key="item.uid"
-              :label="item.sortName"
-              :value="item.uid"
-            ></el-option>
-          </el-select>
+        <el-row :gutter="24">
+          <el-col span="10">
+            <el-form-item label="分类" :label-width="formLabelWidth" prop="resourceSortUid">
+              <el-select
+                v-model="form.resourceSortUid"
+                size="small"
+                placeholder="请选择"
+              >
+                <el-option
+                  v-for="item in resourceSortData"
+                  :key="item.uid"
+                  :label="item.sortName"
+                  :value="item.uid"
+                ></el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
 
-		    </el-form-item>
+          <el-col span="10">
+            <el-form-item label="名称" :label-width="formLabelWidth">
+              <el-input v-model="form.name" auto-complete="off"></el-input>
+            </el-form-item>
+          </el-col>
+        </el-row>
 
-		    <el-form-item label="名称" :label-width="formLabelWidth">
-		      <el-input v-model="form.name" auto-complete="off"></el-input>
-		    </el-form-item>
+        <el-row :gutter="24">
+          <el-col span="10">
+            <el-form-item label="简介" :label-width="formLabelWidth">
+              <el-input type="textarea" v-model="form.summary" auto-complete="off"></el-input>
+            </el-form-item>
+          </el-col>
 
-        <el-form-item label="简介" :label-width="formLabelWidth">
-		      <el-input type="textarea" v-model="form.summary" auto-complete="off"></el-input>
-		    </el-form-item>
-
-        <!-- <el-form-item label="点击数" :label-width="formLabelWidth">
-		      <el-input  v-model="form.clickCount" auto-complete="off"></el-input>
-		    </el-form-item> -->
-
-        <el-form-item label="百度云路径" :label-width="formLabelWidth">
-		      <el-input type="textarea" v-model="form.baiduPath" auto-complete="off"></el-input>
-		    </el-form-item>
+          <el-col span="10">
+            <el-form-item label="百度云路径" :label-width="formLabelWidth">
+              <el-input type="textarea" v-model="form.baiduPath" auto-complete="off"></el-input>
+            </el-form-item>
+          </el-col>
+        </el-row>
 
         <el-form-item label="正文" :label-width="formLabelWidth">
 		      <CKEditor ref="ckeditor" :content="form.content"></CKEditor>
@@ -149,11 +155,7 @@
 		    <el-button type="primary" @click="submitForm">确 定</el-button>
 		  </div>
 		</el-dialog>
-    		<!--
-        	作者：xzx19950624@qq.com
-        	时间：2018年9月23日16:16:09
-         描述：图片选择器
-        -->
+
 		<CheckPhoto @choose_data="getChooseData" @cancelModel="cancelModel" :photoVisible="photoVisible" :photos="photoList" :files="fileIds" :limit="1"></CheckPhoto>
 
   </div>
@@ -215,7 +217,12 @@ export default {
       photoVisible: false, //控制图片选择器的显示
       photoList: [],
       fileIds: "",
-      icon: false //控制删除图标的显示
+      icon: false, //控制删除图标的显示
+      rules: {
+        resourceSortUid: [
+          {required: true, message: '分类不能为空', trigger: 'blur'},
+        ]
+      }
     };
   },
   methods: {
@@ -373,36 +380,42 @@ export default {
         });
     },
     submitForm: function() {
-      this.form.content = this.$refs.ckeditor.getData(); //获取CKEditor中的内容
-      if (this.isEditForm) {
-        editStudyVideo(this.form).then(response => {
-          console.log(response);
-          this.$message({
-            type: "success",
-            message: response.data
-          });
-          this.dialogFormVisible = false;
-          this.studyVideoList();
-        });
-      } else {
-        addStudyVideo(this.form).then(response => {
-          console.log(response);
-          if (response.code == "success") {
-            this.$message({
-              type: "success",
-              message: response.data
+      this.$refs.form.validate((valid) => {
+        if(!valid) {
+          console.log("校验出错")
+        } else {
+          this.form.content = this.$refs.ckeditor.getData(); //获取CKEditor中的内容
+          if (this.isEditForm) {
+            editStudyVideo(this.form).then(response => {
+              console.log(response);
+              this.$message({
+                type: "success",
+                message: response.data
+              });
+              this.dialogFormVisible = false;
+              this.studyVideoList();
             });
           } else {
-            this.$message({
-              type: "error",
-              message: response.data
+            addStudyVideo(this.form).then(response => {
+              console.log(response);
+              if (response.code == "success") {
+                this.$message({
+                  type: "success",
+                  message: response.data
+                });
+              } else {
+                this.$message({
+                  type: "error",
+                  message: response.data
+                });
+              }
+
+              this.dialogFormVisible = false;
+              this.studyVideoList();
             });
           }
-
-          this.dialogFormVisible = false;
-          this.studyVideoList();
-        });
-      }
+        }
+      })
     },
     // 改变多选
     handleSelectionChange(val) {
@@ -426,22 +439,22 @@ export default {
 .avatar-uploader-icon {
   font-size: 28px;
   color: #8c939d;
-  width: 150px;
-  height: 150px;
-  line-height: 150px;
+  width: 195px;
+  height: 105px;
+  line-height: 105px;
   text-align: center;
 }
 .imgBody {
-  width: 150px;
-  height: 150px;
+  width: 195px;
+  height: 105px;
   border: solid 2px #ffffff;
   float: left;
   position: relative;
 }
 .uploadImgBody {
   margin-left: 5px;
-  width: 150px;
-  height: 150px;
+  width: 195px;
+  height: 105px;
   border: dashed 1px #c0c0c0;
   float: left;
   position: relative;

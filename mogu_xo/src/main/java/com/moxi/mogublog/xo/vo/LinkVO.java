@@ -31,6 +31,16 @@ public class LinkVO extends BaseVO<LinkVO> {
     private String url;
 
     /**
+     * 友链状态： 0 申请中， 1：已上线，  2：已拒绝
+     */
+    private Integer linkStatus;
+
+    /**
+     * 排序字段
+     */
+    private Integer sort;
+
+    /**
      * 无参构造方法，初始化默认值
      */
     LinkVO() {

@@ -1,5 +1,5 @@
 <template>
-  <div class="app-container">
+<div class="app-container">
     <iframe id="myIframe"  :src="druidAdminUrl" width="100%" height="780px;"></iframe>
   </div>
 </template>

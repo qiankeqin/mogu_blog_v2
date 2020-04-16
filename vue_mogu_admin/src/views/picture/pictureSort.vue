@@ -10,31 +10,37 @@
     <el-table :data="tableData"  style="width: 100%">
       <el-table-column type="selection"></el-table-column>
 
-      <el-table-column label="序号" width="60">
+      <el-table-column label="序号" width="60" align="center">
 	      <template slot-scope="scope">
 	        <span >{{scope.$index + 1}}</span>
 	      </template>
 	    </el-table-column>
 
-	   	<el-table-column label="标题图" width="160">
+	   	<el-table-column label="标题图" width="160" align="center">
 	      <template slot-scope="scope">
-	      	<img  v-if="scope.row.photoList" :src="BASE_IMAGE_URL + scope.row.photoList[0]" style="width: 100px;height: 100px;"/>
+	      	<img  v-if="scope.row.photoList" :src="BASE_IMAGE_URL + scope.row.photoList[0]" style="width: 130px;height: 70px;"/>
 	      </template>
 	    </el-table-column>
 
-	    <el-table-column label="分类名" width="160">
+	    <el-table-column label="分类名" width="160" align="center">
 	      <template slot-scope="scope">
 	        <span>{{ scope.row.name }}</span>
 	      </template>
 	    </el-table-column>
 
-	    <el-table-column label="创建时间" width="160">
+      <el-table-column label="排序" width="100" align="center">
+        <template slot-scope="scope">
+          <el-tag type="warning">{{ scope.row.sort }}</el-tag>
+        </template>
+      </el-table-column>
+
+	    <el-table-column label="创建时间" width="160" align="center">
 	      <template slot-scope="scope">
 	        <span >{{ scope.row.createTime }}</span>
 	      </template>
 	    </el-table-column>
 
-	   	<el-table-column label="状态" width="100">
+	   	<el-table-column label="状态" width="100" align="center">
 	   	  <template slot-scope="scope">
 		   	  <template v-if="scope.row.status == 1">
 		        <span>正常</span>
@@ -71,29 +77,25 @@
 
 	  <!-- 添加或修改对话框 -->
 		<el-dialog :title="title" :visible.sync="dialogFormVisible">
-		  <el-form :model="form">
-
-		    <el-form-item v-if="isEditForm == true" label="图片分类UID" :label-width="formLabelWidth">
-		      <el-input v-model="form.uid" auto-complete="off" disabled></el-input>
-		    </el-form-item>
-
-		   	<el-form-item v-if="isEditForm == false" label="图片分类UID" :label-width="formLabelWidth" style="display: none;">
-		      <el-input v-model="form.uid" auto-complete="off"></el-input>
-		    </el-form-item>
+		  <el-form :model="form" :rules="rules" ref="form">
 
 				<el-form-item label="封面" :label-width="formLabelWidth">
 	    		<div class="imgBody" v-if="form.photoList">
 	    		  	<i class="el-icon-error inputClass" v-show="icon" @click="deletePhoto()" @mouseover="icon = true"></i>
-	    			<img @mouseover="icon = true" @mouseout="icon = false" v-bind:src="BASE_IMAGE_URL + form.photoList[0]" style="display:inline; width: 150px;height: 150px;"/>
+	    			<img @mouseover="icon = true" @mouseout="icon = false" v-bind:src="BASE_IMAGE_URL + form.photoList[0]" style="display:inline; width: 195px;height: 105px;"/>
 	    		</div>
 	    		<div v-else class="uploadImgBody" @click="checkPhoto">
  		 			<i class="el-icon-plus avatar-uploader-icon"></i>
 		    	</div>
 		    </el-form-item>
 
-		    <el-form-item label="标题" :label-width="formLabelWidth" required>
+		    <el-form-item label="标题" :label-width="formLabelWidth" prop="name">
 		      <el-input v-model="form.name" auto-complete="off"></el-input>
 		    </el-form-item>
+
+        <el-form-item label="排序" :label-width="formLabelWidth" prop="sort">
+          <el-input v-model="form.sort" auto-complete="off"></el-input>
+        </el-form-item>
 
         <el-form-item label="tip" :label-width="formLabelWidth" v-if="!isEditForm">
           <el-tag type="success">首次创建图片分类，可以先不设置封面，待到有图片时在设置即可</el-tag>
@@ -105,11 +107,7 @@
 		    <el-button type="primary" @click="submitForm">确 定</el-button>
 		  </div>
 		</el-dialog>
-    		<!--
-        	作者：xzx19950624@qq.com
-        	时间：2018年9月23日16:16:09
-         描述：图片选择器
-        -->
+
 		<CheckPhoto @choose_data="getChooseData" @cancelModel="cancelModel" :photoVisible="photoVisible" :photos="photoList" :files="fileIds" :limit="1"></CheckPhoto>
 
   </div>
@@ -133,19 +131,7 @@ export default {
     CheckPhoto
   },
   created() {
-    var that = this;
-    var params = new URLSearchParams();
-    getPictureSortList(params).then(response => {
-      console.log("初始化数据", response);
-      this.tableData = response.data.records;
-      this.currentPage = response.data.current;
-      this.pageSize = response.data.size;
-      this.total = response.data.total;
-    });
-    // var loadingInstance = Loading.service({
-    //   target: "#table",
-    //   text: "增加中"
-    // });
+    this.pictureSortList()
   },
   data() {
     return {
@@ -169,15 +155,25 @@ export default {
       photoVisible: false, //控制图片选择器的显示
       photoList: [],
       fileIds: "",
-      icon: false //控制删除图标的显示
+      icon: false, //控制删除图标的显示
+      rules: {
+        name: [
+          {required: true, message: '标题不能为空', trigger: 'blur'},
+          {min: 1, max: 20, message: '长度在1到20个字符'},
+        ],
+        sort: [
+          {required: true, message: '排序字段不能为空', trigger: 'blur'},
+          {pattern: /^[0-9]\d*$/, message: '排序字段只能为自然数'},
+        ]
+      }
     };
   },
   methods: {
     pictureSortList: function() {
-      var params = new URLSearchParams();
-      params.append("keyword", this.keyword);
-      params.append("currentPage", this.currentPage);
-      params.append("pageSize", this.pageSize);
+      var params = {};
+      params.keyword = this.keyword
+      params.pageSize =  this.pageSize
+      params.currentPage = this.currentPage
       getPictureSortList(params).then(response => {
         this.tableData = response.data.records;
         this.currentPage = response.data.current;
@@ -186,11 +182,9 @@ export default {
       });
     },
     handleFind: function() {
-      console.log(this.keyword);
       this.pictureSortList();
     },
     handleManager: function(row) {
-      console.log("点击了图片管理");
       var uid = row.uid;
       this.$router.push({
         path: "picture",
@@ -201,7 +195,8 @@ export default {
       var formObject = {
         uid: null,
         name: null,
-        fileUid: null
+        fileUid: null,
+        sort: 0
       };
       return formObject;
     },
@@ -227,8 +222,6 @@ export default {
       this.photoVisible = false;
     },
     deletePhoto: function() {
-      console.log("点击了删除图片");
-
       this.form.photoList = null;
       this.form.fileUid = "";
     },
@@ -239,12 +232,12 @@ export default {
     handleCurrentChange(val) {
       var that = this;
       console.log(`当前页: ${val}`);
-      this.currentPage = val; //改变当前所指向的页数
+      //改变当前所指向的页数
+      this.currentPage = val;
       this.pictureSortList();
     },
     //点击新增
     handleAdd: function() {
-      console.log("点击了添加");
       this.dialogFormVisible = true;
       this.form = this.getFormObject();
       this.isEditForm = false;
@@ -253,9 +246,7 @@ export default {
     handleEdit: function(row) {
       this.dialogFormVisible = true;
       this.isEditForm = true;
-      console.log(row);
       this.form = row;
-      console.log("点击编辑", this.form);
     },
     handleStick: function(row) {
       this.$confirm("此操作将会把该标签放到首位, 是否继续?", "提示", {
@@ -264,8 +255,8 @@ export default {
         type: "warning"
       })
         .then(() => {
-          let params = new URLSearchParams();
-          params.append("uid", row.uid);
+          let params = {};
+          params.uid = row.uid
           stickPictureSort(params).then(response => {
             if (response.code == "success") {
               this.pictureSortList();
@@ -295,17 +286,21 @@ export default {
         type: "warning"
       })
         .then(() => {
-          let params = new URLSearchParams();
-          params.append("uid", row.uid);
+          let params = {};
+          params.uid = row.uid
           deletePictureSort(params).then(response => {
-            console.log(response);
-            if (response.code == "success") {
+            if(response.code == "success") {
               this.$message({
                 type: "success",
                 message: response.data
               });
-              this.pictureSortList();
+            } else {
+              this.$message({
+                type: "error",
+                message: response.data
+              });
             }
+            this.pictureSortList();
           });
         })
         .catch(() => {
@@ -316,37 +311,39 @@ export default {
         });
     },
     submitForm: function() {
-      console.log("提交表单", this.form);
-      var params = formatData(this.form);
-      if (this.isEditForm) {
-        editPictureSort(params).then(response => {
-          console.log(response);
-          this.$message({
-            type: "success",
-            message: response.data
-          });
-          this.dialogFormVisible = false;
-          this.pictureSortList();
-        });
-      } else {
-        addPictureSort(params).then(response => {
-          console.log(response);
-          if (response.code == "success") {
-            this.$message({
-              type: "success",
-              message: response.data
+      this.$refs.form.validate((valid) => {
+        if(!valid) {
+          console.log("校验出错")
+        } else {
+          if (this.isEditForm) {
+            editPictureSort(this.form).then(response => {
+              console.log(response);
+              this.$message({
+                type: "success",
+                message: response.data
+              });
+              this.dialogFormVisible = false;
+              this.pictureSortList();
             });
           } else {
-            this.$message({
-              type: "error",
-              message: response.data
+            addPictureSort(this.form).then(response => {
+              if (response.code == "success") {
+                this.$message({
+                  type: "success",
+                  message: response.data
+                });
+              } else {
+                this.$message({
+                  type: "error",
+                  message: response.data
+                });
+              }
+              this.dialogFormVisible = false;
+              this.pictureSortList();
             });
           }
-
-          this.dialogFormVisible = false;
-          this.pictureSortList();
-        });
-      }
+        }
+      })
     }
   }
 };
@@ -366,22 +363,22 @@ export default {
 .avatar-uploader-icon {
   font-size: 28px;
   color: #8c939d;
-  width: 150px;
-  height: 150px;
-  line-height: 150px;
+  width: 195px;
+  height: 105px;
+  line-height: 105px;
   text-align: center;
 }
 .imgBody {
-  width: 150px;
-  height: 150px;
+  width: 195px;
+  height: 105px;
   border: solid 2px #ffffff;
   float: left;
   position: relative;
 }
 .uploadImgBody {
   margin-left: 5px;
-  width: 150px;
-  height: 150px;
+  width: 195px;
+  height: 105px;
   border: dashed 1px #c0c0c0;
   float: left;
   position: relative;

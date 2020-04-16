@@ -16,13 +16,13 @@
     <el-table :data="tableData" style="width: 100%">
       <el-table-column type="selection"></el-table-column>
 
-      <el-table-column label="序号" width="60">
+      <el-table-column label="序号" width="60" align="center">
         <template slot-scope="scope">
           <span>{{scope.$index + 1}}</span>
         </template>
       </el-table-column>
 
-      <el-table-column label="头像" width="120">
+      <el-table-column label="头像" width="120" align="center">
         <template slot-scope="scope">
           <img
             v-if="scope.row.photoList"
@@ -32,44 +32,44 @@
         </template>
       </el-table-column>
 
-      <el-table-column label="用户名" width="100">
+      <el-table-column label="用户名" width="100" align="center">
         <template slot-scope="scope">
           <span>{{ scope.row.userName }}</span>
         </template>
       </el-table-column>
 
-      <el-table-column label="拥有角色" width="150">
+      <el-table-column label="拥有角色" width="150" align="center">
         <template slot-scope="scope">
           <el-tag v-if="scope.row.role" type="danger">{{scope.row.role.roleName}}</el-tag>
         </template>
       </el-table-column>
 
-      <el-table-column label="性别" width="100">
+      <el-table-column label="性别" width="100" align="center">
         <template slot-scope="scope">
           <el-tag v-if="scope.row.gender==1" type="success">男</el-tag>
           <el-tag v-if="scope.row.gender==2" type="danger">女</el-tag>
         </template>
       </el-table-column>
 
-      <el-table-column label="登录次数" width="100">
+      <el-table-column label="登录次数" width="100" align="center">
         <template slot-scope="scope">
           <span>{{ scope.row.loginCount }}</span>
         </template>
       </el-table-column>
 
-      <el-table-column label="登录IP" width="160">
+      <el-table-column label="登录IP" width="160" align="center">
         <template slot-scope="scope">
           <span>{{ scope.row.lastLoginIp }}</span>
         </template>
       </el-table-column>
 
-      <el-table-column label="最后登录时间" width="160">
+      <el-table-column label="最后登录时间" width="160" align="center">
         <template slot-scope="scope">
           <span>{{ scope.row.lastLoginTime }}</span>
         </template>
       </el-table-column>
 
-      <el-table-column label="状态" width="100">
+      <el-table-column label="状态" width="100" align="center">
         <template slot-scope="scope">
           <template v-if="scope.row.status == 1">
             <span>正常</span>
@@ -83,7 +83,7 @@
         </template>
       </el-table-column>
 
-      <el-table-column label="操作" fixed="right" min-width="150">
+      <el-table-column label="操作" fixed="right" min-width="250" >
         <template slot-scope="scope">
           <el-button @click="handRest(scope.row)" type="warning" size="small">重置密码</el-button>
           <el-button @click="handleEdit(scope.row)" type="primary" size="small">编辑</el-button>
@@ -105,7 +105,7 @@
 
     <!-- 添加或修改对话框 -->
     <el-dialog :title="title" :visible.sync="dialogFormVisible">
-      <el-form :model="form">
+      <el-form :model="form" :rules="rules" ref="form">
         <el-form-item label="头像" :label-width="formLabelWidth">
           <div class="imgBody" v-if="form.photoList">
             <i
@@ -121,51 +121,65 @@
           </div>
         </el-form-item>
 
-        <el-form-item label="用户名" :label-width="formLabelWidth" required>
-          <el-input v-model="form.userName"></el-input>
-        </el-form-item>
+        <el-row :gutter="24">
+          <el-col span="10">
+            <el-form-item label="用户名" :label-width="formLabelWidth" prop="userName">
+              <el-input v-model="form.userName"></el-input>
+            </el-form-item>
+          </el-col>
+          <el-col span="10">
+            <el-form-item label="昵称" :label-width="formLabelWidth">
+              <el-input v-model="form.nickName"></el-input>
+            </el-form-item>
+          </el-col>
+        </el-row>
 
-        <el-form-item label="角色名" :label-width="formLabelWidth">
-          <el-select v-model="form.roleUid" placeholder="请选择" style="width:150px">
-            <el-option
-              v-for="item in roleOptions"
-              :key="item.uid"
-              :label="item.roleName"
-              :value="item.uid"
-            ></el-option>
-          </el-select>
-        </el-form-item>
+        <el-row :gutter="24">
+          <el-col span="10">
+            <el-form-item label="角色名" :label-width="formLabelWidth">
+              <el-select v-model="form.roleUid" placeholder="请选择">
+                <el-option
+                  v-for="item in roleOptions"
+                  :key="item.uid"
+                  :label="item.roleName"
+                  :value="item.uid"
+                ></el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col span="10">
+            <el-form-item label="性别"  :label-width="formLabelWidth" prop="gender">
+              <el-radio v-for="gender in genderDictList" :key="gender.uid" v-model="form.gender" :label="gender.dictValue" border size="medium">{{gender.dictLabel}}</el-radio>
+            </el-form-item>
+          </el-col>
+        </el-row>
 
-        <el-form-item label="昵称" :label-width="formLabelWidth">
-          <el-input v-model="form.nickName"></el-input>
-        </el-form-item>
+        <el-row :gutter="24">
+          <el-col span="10">
+            <el-form-item label="邮箱" :label-width="formLabelWidth" prop="email">
+              <el-input v-model="form.email" ></el-input>
+            </el-form-item>
+          </el-col>
+          <el-col span="10">
+            <el-form-item label="手机号" :label-width="formLabelWidth" prop="mobile">
+              <el-input v-model="form.mobile" ></el-input>
+            </el-form-item>
+          </el-col>
+        </el-row>
 
-        <el-form-item label="性别" :label-width="formLabelWidth" required>
-          <template>
-            <el-radio v-model="form.gender" label="1">男</el-radio>
-            <el-radio v-model="form.gender" label="2">女</el-radio>
-          </template>
-        </el-form-item>
+        <el-row :gutter="24">
+          <el-col span="10">
+            <el-form-item label="QQ号码" :label-width="formLabelWidth" prop="qqNumber">
+              <el-input v-model="form.qqNumber" ></el-input>
+            </el-form-item>
+          </el-col>
+          <el-col span="10">
+            <el-form-item label="职业" :label-width="formLabelWidth">
+              <el-input v-model="form.occupation" ></el-input>
+            </el-form-item>
+          </el-col>
+        </el-row>
 
-        <el-form-item label="邮箱" :label-width="formLabelWidth">
-          <el-input v-model="form.email" ></el-input>
-        </el-form-item>
-
-        <el-form-item label="手机号" :label-width="formLabelWidth">
-          <el-input v-model="form.mobile" ></el-input>
-        </el-form-item>
-
-        <el-form-item label="微信号" :label-width="formLabelWidth">
-          <el-input v-model="form.weChat" ></el-input>
-        </el-form-item>
-
-        <el-form-item label="QQ号码" :label-width="formLabelWidth">
-          <el-input v-model="form.qqNumber" ></el-input>
-        </el-form-item>
-
-        <el-form-item label="职业" :label-width="formLabelWidth">
-          <el-input v-model="form.occupation" ></el-input>
-        </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogFormVisible = false">取 消</el-button>
@@ -181,6 +195,7 @@
       :files="fileIds"
       :limit="1"
     ></CheckPhoto>
+
   </div>
 </template>
 
@@ -195,7 +210,7 @@ import {
 } from "@/api/admin";
 
 import { getRoleList } from "@/api/role";
-
+import {getListByDictType} from "@/api/sysDictData"
 
 
 import CheckPhoto from "../../components/CheckPhoto";
@@ -214,7 +229,7 @@ export default {
       currentPage: 1,
       pageSize: 10,
       total: 0, //总数量
-      title: "增加标签",
+      title: "增加管理员",
       dialogFormVisible: false, //控制弹出框
       formLabelWidth: "120px",
       isEditForm: false,
@@ -222,14 +237,37 @@ export default {
       photoVisible: false, //控制图片选择器的显示
       photoList: [],
       fileIds: "",
-      icon: false //控制删除图标的显示
+      icon: false, //控制删除图标的显示
+      genderDictList: [], //字典列表
+      rules: {
+        userName: [
+          {required: true, message: '用户名不能为空', trigger: 'blur'},
+          {min: 1, max: 20, message: '长度在1到20个字符'},
+        ],
+        dictValue: [
+          {required: true, message: '字典键值不能为空', trigger: 'blur'},
+          {min: 1, max: 20, message: '长度在1到20个字符'},
+        ],
+        gender: [
+          {required: true, message: '性别不能为空', trigger: 'blur'},
+        ],
+        email: [
+          {pattern: /\w[-\w.+]*@([A-Za-z0-9][-A-Za-z0-9]+\.)+[A-Za-z]{2,14}/, message: '请输入正确的邮箱'},
+        ],
+        mobile: [
+          {pattern: /0?(13|14|15|18)[0-9]{9}/, message: '请输入正确的手机号码'}
+        ],
+        qqNumber: [
+          {pattern: /[1-9]([0-9]{5,11})/, message: '请输入正确的QQ号码'}
+        ]
+      }
     };
   },
   components: {
     CheckPhoto
   },
   created() {
-
+    this.getDictList();
     this.adminList();
     this.roleList();
   },
@@ -241,11 +279,26 @@ export default {
       params.append("pageSize", this.pageSize);
       getAdminList(params).then(response => {
         if(response.code == "success") {
-          console.log("得到的admin", response);
           this.tableData = response.data.records;
           this.currentPage = response.data.current;
           this.pageSize = response.data.size;
           this.total = response.data.total;
+        }
+      });
+    },
+    /**
+     * 字典查询
+     */
+    getDictList: function () {
+      var params = {};
+      params.dictType = 'sys_user_sex';
+      getListByDictType(params).then(response => {
+        if (response.code == "success") {
+          this.genderDictList = response.data.list;
+          // 设置默认值
+          if(response.data.defaultValue) {
+            this.genderDefaultValue =response.data.defaultValue
+          }
         }
       });
     },
@@ -280,7 +333,6 @@ export default {
       this.photoVisible = false;
     },
     deletePhoto: function() {
-      console.log("点击了删除图片");
       this.form.photoList = null;
       this.form.fileUid = "";
       this.icon = false;
@@ -294,7 +346,7 @@ export default {
     getFormObject: function() {
       var formObject = {
         uid: null,
-        gender: "1"
+        gender: this.genderDefaultValue
       };
       return formObject;
     },
@@ -370,11 +422,17 @@ export default {
           adminUids.push(row.uid);
           params.append("adminUids", adminUids);
           deleteAdmin(params).then(response => {
-            console.log(response);
-            this.$message({
-              type: "success",
-              message: response.data
-            });
+            if(response.code == "success") {
+              this.$message({
+                type: "success",
+                message: response.data
+              });
+            } else {
+              this.$message({
+                type: "error",
+                message: response.data
+              });
+            }
             that.adminList();
           });
         })
@@ -391,49 +449,54 @@ export default {
       this.adminList();
     },
     submitForm: function() {
-      console.log("点击了提交表单", this.form);
-      this.form.avatar = this.fileIds;
-      if (this.isEditForm) {
-        editAdmin(this.form).then(response => {
-          console.log(response);
-          if (response.code == "success") {
-            this.$message({
-              type: "success",
-              message: response.data
+      this.$refs.form.validate((valid) => {
+        if(!valid) {
+          console.log("校验出错")
+        } else {
+          this.form.avatar = this.fileIds;
+          if (this.isEditForm) {
+            editAdmin(this.form).then(response => {
+              console.log(response);
+              if (response.code == "success") {
+                this.$message({
+                  type: "success",
+                  message: response.data
+                });
+                this.dialogFormVisible = false;
+                this.adminList();
+              } else {
+                this.$message({
+                  type: "error",
+                  message: response.data
+                });
+              }
             });
-            this.dialogFormVisible = false;
-            this.adminList();
           } else {
-            this.$message({
-              type: "error",
-              message: response.data
+            addAdmin(this.form).then(response => {
+              console.log(response);
+              if (response.code == "success") {
+                this.$message({
+                  type: "success",
+                  message: response.data
+                });
+                this.dialogFormVisible = false;
+                this.adminList();
+              } else {
+                this.$message({
+                  type: "error",
+                  message: response.data
+                });
+              }
             });
           }
-        });
-      } else {
-        addAdmin(this.form).then(response => {
-          console.log(response);
-          if (response.code == "success") {
-            this.$message({
-              type: "success",
-              message: response.data
-            });
-            this.dialogFormVisible = false;
-            this.adminList();
-          } else {
-            this.$message({
-              type: "error",
-              message: response.data
-            });
-          }
-        });
-      }
+        }
+      })
     }
   }
 };
 </script>
 
-<style>
+<style scoped>
 .avatar-uploader .el-upload {
   border: 1px dashed #d9d9d9;
   border-radius: 6px;
@@ -473,10 +536,6 @@ export default {
 }
 .inputClass {
   position: absolute;
-}
-.img {
-  width: 100%;
-  height: 100%;
 }
 img {
   width: 100px;

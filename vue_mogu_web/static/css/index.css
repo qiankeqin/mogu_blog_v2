@@ -17,7 +17,7 @@ article { width: 1200px; margin: 80px auto 0; overflow: hidden }
 header { position: fixed; top: 0; z-index: 99999 }
 .container { width: 1140px; margin: 20px auto }
 /*header*/
-.header-navigation { position: fixed; top: 0; width: 100%; height: 60px; line-height: 60px; background: rgba(0,0,0,.9); text-align: center; z-index: 9999; }
+.header-navigation { position: fixed; top: 0; width: 100%; height: 60px; line-height: 60px; background: rgba(0,0,0,.9); text-align: center; z-index: 2001; }
 .logo { float: left; font-size: 22px; font-weight: bold }
 .logo a { color: #00A7EB }
 nav { width: 1140px; margin: auto; position: relative }
@@ -272,7 +272,8 @@ h1.t_nav { border-bottom: #bfbfbf 1px solid; font-size: 14px; font-weight: norma
 .tags { margin: 30px 0; }
 .infosbox .news_con { line-height: 1.8; font-size: 16px; text-align: justify; }
 .infosbox .news_con p { margin-bottom: 25x }
-.infosbox .news_con img { max-width: 650px; height: auto; }
+.infosbox .news_con img { max-width: 740px; height: auto; }
+ .infosbox .news_con video { max-width: 740px; height: auto; }
 .infosbox .share { padding: 20px; }
 .nextinfo { line-height: 24px; width: 100%; background: #FFF; border-radius: 10px; overflow: hidden; margin: 20px 0 }
 .nextinfo p { padding: 4px 10px; border-radius: 5px; }

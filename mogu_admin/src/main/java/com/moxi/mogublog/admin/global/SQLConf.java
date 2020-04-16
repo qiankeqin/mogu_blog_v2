@@ -15,6 +15,7 @@ public final class SQLConf extends BaseSQLConf {
      * FileSort表
      */
     public final static String BLOG_SORT_UID = "blog_sort_uid";
+    public final static String RESOURCE_SORT_UID = "resource_sort_uid";
     public final static String TAG_UID = "tag_uid";
     public final static String CONTENT = "content";
     public final static String TITLE = "title";
@@ -54,15 +55,22 @@ public final class SQLConf extends BaseSQLConf {
      * t_category_meun表
      */
     public final static String MENU_LEVEL = "menu_level";
+    public final static String MENU_TYPE = "menu_type";
     public final static String PARENT_UID = "parent_uid";
 
     /**
      * t_exception_log
      */
-    public final static String EXCEPTION_JSON = "exceptionJson";
+    public final static String EXCEPTION_JSON = "exception_json";
 
     /**
      * t_todo
      */
     public final static String TEXT = "text";
+
+    /**
+     * blog表
+     */
+    public final static String FILE_UID = "file_uid";
+
 }

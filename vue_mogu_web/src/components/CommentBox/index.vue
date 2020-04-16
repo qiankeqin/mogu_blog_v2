@@ -2,7 +2,7 @@
   <div>
     <div class="commentBox">
     <span class="left">
-      <img :src="getUserPhoto" />
+      <img :src="getUserPhoto" onerror="onerror=null;src='https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif'"/>
     </span>
 
       <span class="right">
@@ -19,6 +19,7 @@
 </template>
 
 <script>
+  import {dateFormat} from '../../utils/webUtils'
   import {mapGetters} from 'vuex';
   export default {
     name: 'CommentBox',
@@ -88,6 +89,7 @@
         let toUserUid = "";
         let toCommentUid = "";
         let blogUid = "";
+
         // 评论来源： MESSAGE_BOARD，ABOUT，BLOG_INFO 等 代表来自某些页面的评论
         let source = "";
         let content = this.value;
@@ -107,11 +109,12 @@
           content: content,
           blogUid: blogUid,
           source: source,
-          reply: []
+          reply: [],
         }
-
         this.value = '';
         this.count = 255;
+        this.comments.createTime = dateFormat("YYYY-mm-dd HH:MM:SS", new Date());
+        console.log('返回的内容', this.comments)
         this.$emit("submit-box", this.comments)
       },
       handleCancle() {
@@ -129,7 +132,6 @@
     width: 100%;
     height: 100px;
     margin: 0 auto;
-    background: #f6f6f6;
   }
   .commentBox .left {
     display: inline-block;
@@ -156,11 +158,11 @@
     color: #606266;
     padding:10px 5px 5px 10px;
     resize: none;
-    width: 98%;
+    width: 95%;
     height: 100%;
   }
   .bottom {
-    width: 100%;
+    width: 98%;
     height: 60px;
     line-height: 40px;
     margin-top: 20px;

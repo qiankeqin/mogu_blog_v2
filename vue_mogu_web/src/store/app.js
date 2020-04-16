@@ -1,10 +1,14 @@
-import {SET_COMMENT_LIST, INCREMENT} from "./mutation-types";
+import {SET_COMMENT_LIST, SET_WEB_CONFIG_DATA, SET_USER_TAG} from "./mutation-types";
 
 const app = {
   // 全局状态
   state: {
+    // 评论列表
     commentList: [],
-    id: 100,
+    // 用户标签字典 列表
+    userTagDictList: [],
+    // WebConfig网站配置
+    webConfigData: {},
   },
   // getters是对数据的包装，例如对数据进行拼接，或者过滤
   getters: {
@@ -18,9 +22,16 @@ const app = {
     [SET_COMMENT_LIST](state, commentList) {
       state.commentList = commentList
     },
-    [INCREMENT](state) {
-      state.id += 1
+
+    // 传入自定义参数
+    [SET_USER_TAG](state, userTagDictList) {
+      state.userTagDictList = userTagDictList
     },
+
+    // 设置WebConfig
+    [SET_WEB_CONFIG_DATA](state, webConfigData) {
+      state.webConfigData = webConfigData
+    }
   },
 
   // actions是我们定义的一些操作，正常情况下，我们很少会直接调用mutation方法来改变state

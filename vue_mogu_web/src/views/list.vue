@@ -95,7 +95,6 @@ import FourthRecommend from "../components/FourthRecommend";
 import TagCloud from "../components/TagCloud";
 import HotBlog from "../components/HotBlog";
 import FollowUs from "../components/FollowUs";
-import { recorderVisitPage } from "../api/index";
 import {
   searchBlog,
   searchBlogByTag,
@@ -134,10 +133,6 @@ export default {
     this.sortUid = this.$route.query.sortUid;
     this.author = this.$route.query.author;
 
-    var params = new URLSearchParams();
-    params.append("pageName", "LIST");
-    recorderVisitPage(params).then(response => {});
-
     if (
       this.keywords == undefined &&
       this.tagUid == undefined &&
@@ -167,6 +162,7 @@ export default {
       this.keywords = this.$route.query.keyword;
       this.tagUid = this.$route.query.tagUid;
       this.sortUid = this.$route.query.sortUid;
+      this.searchBlogData = [] // 清空查询出来的博客
       this.search();
     }
   },
@@ -177,7 +173,7 @@ export default {
         path: "/info",
         query: { blogUid: uid }
       });
-      window.open(routeData.href, "_blank");
+      window.open(routeData.href, '_blank');
     },
     //点击了分类
     goToList(uid) {
@@ -185,7 +181,14 @@ export default {
         path: "/list",
         query: { sortUid: uid }
       });
-      window.open(routeData.href, "_blank");
+      window.open(routeData.href, '_blank');
+    },
+    goToAuthor(author) {
+      let routeData = this.$router.resolve({
+        path: "/list",
+        query: {author: author}
+      });
+      window.open(routeData.href, '_blank');
     },
     // 加载内容
     loadContent: function() {
@@ -204,17 +207,24 @@ export default {
         params.append("pageSize", that.pageSize);
         params.append("keywords", that.keywords);
         searchBlog(params).then(response => {
-          if (response.code == "success" && response.data.blogList.length > 0) {
+          if (response.code == "success") {
             that.isEnd = false;
-            console.log("返回的搜索数据", response.data.blogList)
             //获取总页数
             that.totalPages = response.data.blogList.length;
             that.total = response.data.total;
             that.pageSize = response.data.pageSize;
             that.currentPage = response.data.currentPage;
             var blogData = response.data.blogList;
+
+            // 判断搜索的博客是否有
+            if(response.data.total <= 0) {
+              that.isEnd = true;
+              that.loading = false;
+              this.blogData = []
+              return;
+            }
+
             //全部加载完毕
-            console.log(blogData.length, that.pageSize);
             if (blogData.length < that.pageSize) {
               that.isEnd = true;
             }
@@ -246,7 +256,6 @@ export default {
             that.currentPage = response.data.current;
 
             //全部加载完毕
-            console.log(blogData.length, that.pageSize);
             if (blogData.length < that.pageSize) {
               that.isEnd = true;
             }
@@ -260,7 +269,9 @@ export default {
             that.searchBlogData = blogData;
             this.blogData = blogData;
             that.loading = false;
+
           } else {
+
             that.isEnd = true;
             that.loading = false;
           }
@@ -284,7 +295,6 @@ export default {
             that.currentPage = response.data.current;
 
             //全部加载完毕
-            console.log(blogData.length, that.pageSize);
             if (blogData.length < that.pageSize) {
               that.isEnd = true;
             }
@@ -298,6 +308,8 @@ export default {
             this.blogData = blogData;
             that.loading = false;
           } else {
+
+
             that.isEnd = true;
             that.loading = false;
           }
@@ -322,7 +334,6 @@ export default {
             that.currentPage = response.data.current;
 
             //全部加载完毕
-            console.log(blogData.length, that.pageSize);
             if (blogData.length < that.pageSize) {
               that.isEnd = true;
             }
@@ -340,6 +351,7 @@ export default {
             this.blogData = blogData;
             that.loading = false;
           } else {
+
             that.isEnd = true;
             that.loading = false;
           }

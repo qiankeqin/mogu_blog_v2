@@ -12,7 +12,6 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
-
     @Override
     protected void configure(HttpSecurity httpSecurity) throws Exception {
 
@@ -56,10 +55,13 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                         "/user/**",
                         "/oauth/**",
                         "/web/comment/**",
+                        "/freemarker/**",
+                        "/sysDictData/**",
                         "elasticSearchBlog/**"
                 ).permitAll()
                 // 除上面外的所有请求全部需要鉴权认证
                 .anyRequest().authenticated();
+
 
         // 禁用缓存
         httpSecurity.headers().cacheControl();

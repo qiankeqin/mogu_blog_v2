@@ -41,7 +41,8 @@
         <qiniu.version>[7.2.0, 7.2.99]</qiniu.version>
         <springBootAdmin.version>2.2.1</springBootAdmin.version>
         <JustAuth.version>1.13.1</JustAuth.version>
-
+        <dyuproject.version>1.1.5</dyuproject.version>
+        <flexmark.version>0.61.0</flexmark.version>
     </properties>
 
 
@@ -58,6 +59,9 @@
         <module>mogu_search</module>
         <module>mogu_monitor</module>
         <module>mogu_gateway</module>
+        <module>mogu_zipkin</module>
+        <module>mogu_spider</module>
+        <module>mogu_commons</module>
     </modules>
 
     <dependencyManagement>

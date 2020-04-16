@@ -6,6 +6,9 @@ import org.apache.ibatis.javassist.*;
 import org.apache.ibatis.javassist.bytecode.CodeAttribute;
 import org.apache.ibatis.javassist.bytecode.LocalVariableAttribute;
 import org.apache.ibatis.javassist.bytecode.MethodInfo;
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.Signature;
+import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.ServletRequest;
@@ -24,6 +27,7 @@ public class AopUtils {
 
     /**
      * 获取AOP代理的方法的参数名称和参数值
+     *
      * @param cls
      * @param clazzName
      * @param methodName
@@ -91,5 +95,69 @@ public class AopUtils {
         }
 
         return sb;
+    }
+
+    /**
+     * 获取AOP代理的方法的参数名称和参数值
+     *
+     * @param cls
+     * @param clazzName
+     * @param methodName
+     * @param args
+     * @return
+     */
+    public static Map<String, Object> getNameAndArgsMap(Class<?> cls, String clazzName, String methodName, Object[] args) {
+
+        Map<String, Object> nameAndArgs = new HashMap<>();
+
+        try {
+
+            ClassPool pool = ClassPool.getDefault();
+            ClassClassPath classPath = new ClassClassPath(cls);
+            pool.insertClassPath(classPath);
+
+            CtClass cc = pool.get(clazzName);
+            CtMethod cm = cc.getDeclaredMethod(methodName);
+            MethodInfo methodInfo = cm.getMethodInfo();
+            CodeAttribute codeAttribute = methodInfo.getCodeAttribute();
+            LocalVariableAttribute attr = (LocalVariableAttribute) codeAttribute.getAttribute(LocalVariableAttribute.tag);
+            if (attr == null) {
+                // exception
+            }
+            int pos = Modifier.isStatic(cm.getModifiers()) ? 0 : 1;
+            for (int i = 0; i < cm.getParameterTypes().length; i++) {
+                String variableName = attr.variableName(i + pos);
+                System.out.println("参数名" + attr.variableName(i + pos));
+                // paramNames即参数名
+                nameAndArgs.put(attr.variableName(i + pos), args[i]);
+            }
+
+        } catch (Exception e) {
+            log.error(e.getMessage());
+        }
+
+        return nameAndArgs;
+    }
+
+    /**
+     * 获取参数名和值
+     *
+     * @param joinPoint
+     * @return
+     */
+    public static Map getFieldsName(ProceedingJoinPoint joinPoint) throws ClassNotFoundException, NoSuchMethodException {
+        // 参数值
+        Object[] args = joinPoint.getArgs();
+
+        Signature signature = joinPoint.getSignature();
+        MethodSignature methodSignature = (MethodSignature) signature;
+        String[] parameterNames = methodSignature.getParameterNames();
+
+        // 通过map封装参数和参数值
+        HashMap<String, Object> paramMap = new HashMap();
+        for (int i = 0; i < parameterNames.length; i++) {
+            paramMap.put(parameterNames[i], args[i]);
+        }
+        return paramMap;
     }
 }

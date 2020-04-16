@@ -1,6 +1,5 @@
 package com.moxi.mogublog.xo.vo;
 
-import com.baomidou.mybatisplus.annotation.FieldStrategy;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.moxi.mougblog.base.vo.BaseVO;
 import lombok.Data;
@@ -98,6 +97,11 @@ public class WebConfigVO extends BaseVO<WebConfigVO> {
      * 邮箱
      */
     private String email;
+
+    /**
+     * 显示的列表（用于控制邮箱、QQ、QQ群、Github、Gitee、微信是否显示在前端）
+     */
+    private String showList;
 
 
     // 以下字段不存入数据库，封装为了方便使用

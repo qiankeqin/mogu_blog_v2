@@ -1,15 +1,17 @@
 <template>
   <div class="app-container">
     <!-- 查询和其他操作 -->
-    <el-tabs type="border-card">
-      <el-tab-pane label="关于我">
+    <el-tabs type="border-card" v-model="activeName" @tab-click="handleClick">
+      <el-tab-pane label="关于我" name="one">
         <span slot="label"><i class="el-icon-star-on"></i> 关于我</span>
         <el-form style="margin-left: 20px;" label-position="left" :model="form" label-width="100px" ref="changeAdminForm">
           <el-form-item label="用户头像">
+
             <div class="imgBody" v-if="form.photoList">
                 <i class="el-icon-error inputClass" v-show="icon" @click="deletePhoto()" @mouseover="icon = true"></i>
-              <img @mouseover="icon = true" @mouseout="icon = false" v-bind:src="BASE_IMAGE_URL + form.photoList[0]" />	    		 
+              <img @mouseover="icon = true" @mouseout="icon = false" v-bind:src="BASE_IMAGE_URL + form.photoList[0]" />
             </div>
+
             <div v-else class="uploadImgBody" @click="checkPhoto">
               <i class="el-icon-plus avatar-uploader-icon"></i>
             </div>
@@ -20,14 +22,13 @@
           </el-form-item>
 
             <el-form-item label="性别">
-              <el-radio v-model="form.gender" label="1" border size="medium">男</el-radio>
-              <el-radio v-model="form.gender" label="2" border size="medium">女</el-radio>
+              <el-radio v-for="gender in genderDictList" :key="gender.uid" v-model="form.gender" :label="gender.dictValue" border size="medium">{{gender.dictLabel}}</el-radio>
             </el-form-item>
-          
+
           <!-- <el-form-item label="手机号">
             <el-input v-model="form.mobile" style="width: 400px"></el-input>
           </el-form-item> -->
-          
+
           <el-form-item label="邮箱">
             <el-input v-model="form.email" style="width: 400px"></el-input>
           </el-form-item>
@@ -47,7 +48,7 @@
           <!-- <el-form-item label="微信号">
             <el-input v-model="form.weChat" style="width: 400px"></el-input>
           </el-form-item> -->
-          
+
           <el-form-item label="职业">
             <el-input v-model="form.occupation" style="width: 400px"></el-input>
           </el-form-item>
@@ -61,7 +62,7 @@
               v-model="form.summary">
             </el-input>
           </el-form-item>
-          
+
           <el-form-item>
             <el-button type="primary" @click="submitForm('changeAdminForm')">保 存</el-button>
             <!-- <el-button @click="cancel('changeAdminForm')">重 置</el-button>             -->
@@ -73,7 +74,7 @@
       <!-- <el-tab-pane label="显示配置" name="second">
       <span slot="label"><i class="el-icon-setting"></i> 显示配置</span>
         <el-form style="margin-left: 20px;" label-position="left" :model="form" label-width="100px">
-        
+
         <el-tag style="font-size: 15px; margin:10px 0 10px 0;" type="warning" >这里主要是控制web前端，关于我页面中，一些个人信息的显示</el-tag>
 
         <el-form-item label="手机">
@@ -94,20 +95,32 @@
 
         <el-form-item>
           <el-button type="primary" @click="submitForm">保 存</el-button>
-          <el-button @click="cancel">重 置</el-button>          
+          <el-button @click="cancel">重 置</el-button>
         </el-form-item>
-        
+
         </el-form>
-        
+
       </el-tab-pane> -->
 
-      <el-tab-pane label="修改密码" name="third">
+      <el-tab-pane label="个人履历" name="third">
+        <span slot="label"><i class="el-icon-edit"></i> 个人履历</span>
+        <div class="editor-container">
+          <CKEditor ref="ckeditor" :content="form.personResume" :height="500"></CKEditor>
+        </div>
+
+        <div style="margin-top: 5px; margin-left: 10px;" >
+          <el-button type="primary" @click="submitForm('personResume')">保 存</el-button>
+        </div>
+
+      </el-tab-pane>
+
+      <el-tab-pane label="修改密码" name="four">
         <span slot="label"><i class="el-icon-edit"></i> 修改密码</span>
         <el-form :rules="rules" style="margin-left: 20px;" label-position="left" :model="changePwdForm"  label-width="80px" ref="changePwdForm">
           <el-form-item label="旧密码" prop="oldPwd">
             <el-input type="password" v-model="changePwdForm.oldPwd" style="width: 400px"></el-input>
           </el-form-item>
-          
+
           <el-form-item label="新密码" prop="newPwd1">
             <el-input type="password" v-model="changePwdForm.newPwd1" style="width: 400px"></el-input>
           </el-form-item>
@@ -115,33 +128,45 @@
           <el-form-item label="重复输入" prop="newPwd2">
             <el-input type="password" v-model="changePwdForm.newPwd2" style="width: 400px"></el-input>
           </el-form-item>
-          
+
           <el-form-item>
             <el-button type="primary" @click="submitForm('changePwdForm')">保 存</el-button>
-            <el-button @click="cancel('changePwdForm')">重 置</el-button>          
+            <el-button @click="cancel('changePwdForm')">重 置</el-button>
           </el-form-item>
 
         </el-form>
-      </el-tab-pane>   
+      </el-tab-pane>
 
     </el-tabs>
 
-  <!--
-    作者：xzx19950624@qq.com
-    时间：2018年9月23日16:16:09
-    描述：图片选择器
-  -->
-	<CheckPhoto @choose_data="getChooseData" @cancelModel="cancelModel" :photoVisible="photoVisible" :photos="photoList" :files="fileIds" :limit="1"></CheckPhoto>
+    <avatar-cropper
+      v-show="imagecropperShow"
+      :key="imagecropperKey"
+      :width="300"
+      :height="300"
+      :url="url"
+      lang-type="zh"
+      @close="close"
+      @crop-upload-success="cropSuccess"
+    />
+
   </div>
 </template>
 
 <script>
-import CheckPhoto from "../../components/CheckPhoto";
-import CKEditor from "../../components/CKEditor";
+import AvatarCropper from '@/components/AvatarCropper'
 import { getMe, editMe, changePwd } from "@/api/system";
+import CKEditor from "@/components/CKEditor";
+import {getListByDictType} from "@/api/sysDictData"
+
 export default {
   data() {
     return {
+      genderDictList: [], //字典列表
+      activeName: "one",
+      imagecropperShow: false,
+      imagecropperKey: 0,
+      url: process.env.PICTURE_API + "/file/cropperPicture",
       BASE_IMAGE_URL: process.env.BASE_IMAGE_URL,
       form: {},
       changePwdForm: {
@@ -171,53 +196,66 @@ export default {
     };
   },
   components: {
-    CheckPhoto,
+    AvatarCropper,
     CKEditor
   },
+  computed: {
+    language() {
+      return this.languageTypeList['zh']
+    }
+  },
   created() {
-    var tagParams = new URLSearchParams();
-    getMe(tagParams).then(response => {
-      console.log(response);
-      if (response.code == "success") {
-        this.form = response.data;
-        this.fileIds = this.form.avatar;
-        this.photoList = this.form.photoList;
-      }
-    });
+    this.getDictList();
+    this.getMeInfo();
   },
   methods: {
-    //弹出选择图片框
-    checkPhoto: function() {
-      console.log(this.photoVisible);
-      console.log("点击了选择图");
-      this.photoVisible = true;
-      console.log(this.photoVisible);
+    getMeInfo: function() {
+      var getMeParams = new URLSearchParams();
+      getMe(getMeParams).then(response => {
+        console.log("得到的用户列表", response)
+        if (response.code == "success") {
+          this.form = response.data;
+          this.fileIds = this.form.avatar;
+        }
+      });
     },
-    getChooseData(data) {
-      var that = this;
-      this.photoVisible = false;
-      this.photoList = data.photoList;
-      this.fileIds = data.fileIds;
-      var fileId = this.fileIds.replace(",", "");
-      if (this.photoList.length >= 1) {
-        this.form.fileUid = fileId;
-        this.form.photoList = this.photoList;
-      }
+    handleClick(tab, event) {
+      //设置富文本内容
+      this.$refs.ckeditor.setData(this.form.personResume);
     },
-    //关闭模态框
-    cancelModel() {
-      this.photoVisible = false;
+    /**
+     * 字典查询
+     */
+    getDictList: function () {
+      var params = {};
+      params.dictType = 'sys_user_sex';
+      getListByDictType(params).then(response => {
+        console.log('得到的字典', response)
+        if (response.code == "success") {
+          this.genderDictList = response.data.list;
+        }
+      });
+    },
+    cropSuccess(resData) {
+      console.log("裁剪成功", resData)
+      this.imagecropperShow = false
+      this.imagecropperKey = this.imagecropperKey + 1
+      let photoList = []
+      photoList.push(resData[0].url);
+      this.form.photoList = photoList;
+      this.form.avatar = resData[0].uid
+    },
+    close() {
+      this.imagecropperShow = false
     },
     deletePhoto: function() {
-      console.log("点击了删除图片");
       this.form.photoList = null;
       this.form.fileUid = "";
       this.icon = false;
     },
+    //弹出选择图片框
     checkPhoto() {
-      this.photoList = [];
-      this.fileIds = "";
-      this.photoVisible = true;
+      this.imagecropperShow = true
     },
 
     submitForm: function(type) {
@@ -225,7 +263,6 @@ export default {
         // 1、改变用户信息
         case "changeAdminForm":
           {
-            this.form.avatar = this.fileIds;
             console.log("提交的内容", this.form);
             editMe(this.form).then(response => {
               console.log(response);
@@ -237,6 +274,22 @@ export default {
             });
           }
           break;
+
+        // 2、改变个人履历
+        case "personResume":
+        {
+          //获取CKEditor中的内容
+          this.form.personResume = this.$refs.ckeditor.getData();
+          editMe(this.form).then(response => {
+            console.log(response);
+            this.$notify({
+              title: "成功",
+              message: "保存成功！",
+              type: "success"
+            });
+          });
+        }
+        break;
 
         //3、改变密码
         case "changePwdForm":
@@ -286,7 +339,6 @@ export default {
       }
     },
     cancel: function(type) {
-      console.log("点击了重置", type);      
       this.$refs[type].resetFields();
     }
   }
@@ -341,5 +393,9 @@ export default {
 img {
   width: 100px;
   height: 100px;
+}
+
+.editor-container{
+  margin-bottom: 30px;
 }
 </style>

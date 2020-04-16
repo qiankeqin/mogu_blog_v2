@@ -14,6 +14,9 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
+import javax.annotation.PostConstruct;
+import java.util.TimeZone;
+
 @EnableTransactionManagement
 //redis和velocity的包会起冲突
 @SpringBootApplication
@@ -21,20 +24,21 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @EnableEurekaClient
 @EnableCaching
 @EnableRabbit
-@EnableFeignClients("com.moxi.mogublog.admin.feign")
+@EnableFeignClients("com.moxi.mogublog.commons.feign")
 @ComponentScan(basePackages = {
         "com.moxi.mogublog.config",
+        "com.moxi.mogublog.utils",
         "com.moxi.mogublog.admin.log",
-        "com.moxi.mogublog.admin.util",
         "com.moxi.mogublog.admin.security",
         "com.moxi.mogublog.admin.config",
         "com.moxi.mogublog.admin.restapi",
-        "com.moxi.mogublog.xo.service",
-        "com.moxi.mogublog.utils"
+        "com.moxi.mogublog.xo.utils",
+        "com.moxi.mogublog.xo.service"
 })
 public class AdminApplication {
 
     public static void main(String[] args) {
+        TimeZone.setDefault(TimeZone.getTimeZone("Asia/Shanghai"));
         SpringApplication.run(AdminApplication.class, args);
     }
 
@@ -44,6 +48,14 @@ public class AdminApplication {
         corsConfiguration.addAllowedHeader("*");
         corsConfiguration.addAllowedMethod("*");
         return corsConfiguration;
+    }
+
+    /**
+     * 设置时区
+     */
+    @PostConstruct
+    void setDefaultTimezone() {
+        TimeZone.setDefault(TimeZone.getTimeZone("Asia/Shanghai"));
     }
 
     /**

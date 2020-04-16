@@ -1,8 +1,10 @@
 package com.moxi.mogublog.admin.restapi;
 
-import com.moxi.mogublog.admin.feign.SearchFeignClient;
+import com.moxi.mogublog.admin.global.MessageConf;
 import com.moxi.mogublog.admin.global.SysConf;
 import com.moxi.mogublog.admin.log.OperationLogger;
+import com.moxi.mogublog.admin.security.AuthorityVerify;
+import com.moxi.mogublog.commons.feign.SearchFeignClient;
 import com.moxi.mogublog.utils.JsonUtils;
 import com.moxi.mogublog.utils.ResultUtil;
 import io.swagger.annotations.Api;
@@ -13,7 +15,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
 
 /**
@@ -31,31 +32,33 @@ public class SearchIndexRestApi {
     @Autowired
     private SearchFeignClient searchFeignClient;
 
+    @AuthorityVerify
     @OperationLogger(value = "初始化ElasticSearch索引")
     @ApiOperation(value = "初始化ElasticSearch索引", notes = "初始化solr索引")
     @PostMapping("/initElasticIndex")
-    public String initElasticIndex(HttpServletRequest request) {
+    public String initElasticIndex() {
 
         String result = searchFeignClient.initElasticSearchIndex();
         Map<String, Object> blogMap = (Map<String, Object>) JsonUtils.jsonToObject(result, Map.class);
         if (SysConf.SUCCESS.equals(blogMap.get(SysConf.CODE))) {
-            return ResultUtil.result(SysConf.SUCCESS, "初始化ElasticSearch索引成功");
+            return ResultUtil.result(SysConf.SUCCESS, MessageConf.OPERATION_SUCCESS);
         } else {
-            return ResultUtil.result(SysConf.ERROR, "初始化ElasticSearch索引失败");
+            return ResultUtil.result(SysConf.ERROR, MessageConf.OPERATION_FAIL);
         }
     }
 
+    @AuthorityVerify
     @OperationLogger(value = "初始化Solr索引")
     @ApiOperation(value = "初始化Solr索引", notes = "初始化solr索引")
     @PostMapping("/initSolrIndex")
-    public String initSolrIndex(HttpServletRequest request) {
+    public String initSolrIndex() {
 
         String result = searchFeignClient.initSolrIndex();
         Map<String, Object> blogMap = (Map<String, Object>) JsonUtils.jsonToObject(result, Map.class);
         if (SysConf.SUCCESS.equals(blogMap.get(SysConf.CODE))) {
-            return ResultUtil.result(SysConf.SUCCESS, "初始化Solr索引成功");
+            return ResultUtil.result(SysConf.SUCCESS, MessageConf.OPERATION_SUCCESS);
         } else {
-            return ResultUtil.result(SysConf.ERROR, "初始化Solr索引失败");
+            return ResultUtil.result(SysConf.ERROR, MessageConf.OPERATION_FAIL);
         }
     }
 }

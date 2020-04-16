@@ -1,12 +1,21 @@
 package com.moxi.mogublog.utils;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.StringUtils;
 
 import javax.servlet.http.HttpServletRequest;
-import java.io.*;
-import java.net.*;
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
+import java.net.InetAddress;
+import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 /**
@@ -54,6 +63,30 @@ public class IpUtils {
         return ipAddress;
     }
 
+    /**
+     * 获取真实IP
+     *
+     * @param request
+     * @return
+     */
+    public static String getRealIp(HttpServletRequest request) {
+        String ip = request.getHeader("x-forwarded-for");
+        return checkIp(ip) ? ip : (
+                checkIp(ip = request.getHeader("Proxy-Client-IP")) ? ip : (
+                        checkIp(ip = request.getHeader("WL-Proxy-Client-IP")) ? ip :
+                                request.getRemoteAddr()));
+    }
+
+    /**
+     * 校验IP
+     *
+     * @param ip
+     * @return
+     */
+    private static boolean checkIp(String ip) {
+        return !StringUtils.isEmpty(ip) && !"unknown".equalsIgnoreCase(ip);
+    }
+
 
     /**
      * 获取操作系统,浏览器及浏览器版本信息
@@ -62,7 +95,6 @@ public class IpUtils {
      * @return
      */
     public static Map<String, String> getOsAndBrowserInfo(HttpServletRequest request) {
-
         String browserDetails = request.getHeader("User-Agent");
         String userAgent = browserDetails;
         String user = userAgent.toLowerCase();
@@ -124,86 +156,101 @@ public class IpUtils {
     }
 
     /**
+     * 判断是否是内网IP
      *
-     * @param content
-     *            请求的参数 格式为：name=xxx&pwd=xxx
-     * @param encodingString
-     *            服务器端请求编码。如GBK,UTF-8等
+     * @param ip
+     * @return
+     */
+    public static boolean isInner(String ip) {
+        String reg = "(10|172|192)\\.([0-1][0-9]{0,2}|[2][0-5]{0,2}|[3-9][0-9]{0,1})\\.([0-1][0-9]{0,2}|[2][0-5]{0,2}|[3-9][0-9]{0,1})\\.([0-1][0-9]{0,2}|[2][0-5]{0,2}|[3-9][0-9]{0,1})";
+        Pattern p = Pattern.compile(reg);
+        Matcher matcher = p.matcher(ip);
+        return matcher.find();
+    }
+
+    /**
+     * 获取IP地址来源
+     *
+     * @param content        请求的参数 格式为：name=xxx&pwd=xxx
+     * @param encodingString 服务器端请求编码。如GBK,UTF-8等
      * @return
      * @throws UnsupportedEncodingException
      */
     public static String getAddresses(String content, String encodingString) {
 
-
-
-        try {
-            // 这里调用pconline的接口
-            String urlStr = "http://ip.taobao.com/service/getIpInfo.php";
-
-            // 从http://whois.pconline.com.cn取得IP所在的省市区信息
-            String returnStr = getResult(urlStr, content, encodingString);
-
-            if (returnStr != null) {
-                // 处理返回的省市区信息
-
-                log.info("调用IP解析接口返回的内容:" + returnStr);
-                String[] temp = returnStr.split(",");
-                //无效IP，局域网测试
-                if(temp.length < 3){
-                    return "0";
-                }
-
-                // 国家
-                String country = "";
-                // 区域
-                String area = "";
-                // 省
-                String region = "";
-                // 市
-                String city = "";
-                // 县
-                String county = "";
-                // 运营商
-                String isp = "";
-
-                Map<String, Object> map = JsonUtils.jsonToMap(returnStr);
-
-                if(map.get("code") != null) {
-                    Map<String, String> data = (Map<String, String>)map.get("data");
-                    country = data.get("country");
-                    area = data.get("area");
-                    region = data.get("region");
-                    city = data.get("city");
-                    county = data.get("area");
-                    isp = data.get("isp");
-                }
-
-
-                log.info("获取IP地址对应的地址" + country+"="+area+"="+region+"="+city+"="+county+"="+isp);
-                StringBuffer result = new StringBuffer();
-                result.append(country);
-                result.append("|");
-                result.append(region);
-                result.append("|");
-                result.append(city);
-                result.append("|");
-                result.append(isp);
-
-                return result.toString();
-            }
-        } catch (Exception e) {
-            log.error(e.getMessage());
-            return null;
+        String ip = content.substring(3);
+        // 判断是否是内网op
+        if (isInner(ip)) {
+            return "XX|XX|内网IP|内网IP";
         }
+
+        // TODO 淘宝接口目前已经宕机，因此暂时注释下面代码
+
+//        try {
+//            // 这里调用pconline的接口
+//            String urlStr = "http://ip.taobao.com/service/getIpInfo.php";
+//
+//            // 从http://whois.pconline.com.cn取得IP所在的省市区信息
+//            String returnStr = getResult(urlStr, content, encodingString);
+//
+//            if (returnStr != null) {
+//                // 处理返回的省市区信息
+//                log.info("调用IP解析接口返回的内容:" + returnStr);
+//                String[] temp = returnStr.split(",");
+//                //无效IP，局域网测试
+//                if (temp.length < 3) {
+//                    return "0";
+//                }
+//
+//                // 国家
+//                String country = "";
+//                // 区域
+//                String area = "";
+//                // 省
+//                String region = "";
+//                // 市
+//                String city = "";
+//                // 县
+//                String county = "";
+//                // 运营商
+//                String isp = "";
+//
+//                Map<String, Object> map = JsonUtils.jsonToMap(returnStr);
+//
+//                if (map.get("code") != null) {
+//                    Map<String, String> data = (Map<String, String>) map.get("data");
+//                    country = data.get("country");
+//                    area = data.get("area");
+//                    region = data.get("region");
+//                    city = data.get("city");
+//                    county = data.get("area");
+//                    isp = data.get("isp");
+//                }
+//
+//
+//                log.info("获取IP地址对应的地址" + country + "=" + area + "=" + region + "=" + city + "=" + county + "=" + isp);
+//                StringBuffer result = new StringBuffer();
+//                result.append(country);
+//                result.append("|");
+//                result.append(region);
+//                result.append("|");
+//                result.append(city);
+//                result.append("|");
+//                result.append(isp);
+//
+//                return result.toString();
+//            }
+//        } catch (Exception e) {
+//            log.error(e.getMessage());
+//            return null;
+//        }
         return null;
     }
+
     /**
-     * @param urlStr
-     *            请求的地址
-     * @param content
-     *            请求的参数 格式为：name=xxx&pwd=xxx
-     * @param encoding
-     *            服务器端请求编码。如GBK,UTF-8等
+     * @param urlStr   请求的地址
+     * @param content  请求的参数 格式为：name=xxx&pwd=xxx
+     * @param encoding 服务器端请求编码。如GBK,UTF-8等
      * @return
      */
     private static String getResult(String urlStr, String content, String encoding) {
@@ -215,10 +262,10 @@ public class IpUtils {
             connection = (HttpURLConnection) url.openConnection();
 
             // 设置连接超时时间，单位毫秒
-            connection.setConnectTimeout(20000);
+            connection.setConnectTimeout(10000);
 
             // 设置读取数据超时时间，单位毫秒
-            connection.setReadTimeout(20000);
+            connection.setReadTimeout(10000);
 
             // 是否打开输出流 true|false
             connection.setDoOutput(true);
@@ -261,28 +308,28 @@ public class IpUtils {
             reader.close();
             return buffer.toString();
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error(e.getMessage());
+            return null;
         } finally {
             if (connection != null) {
-
                 // 关闭连接
                 connection.disconnect();
             }
         }
-        return null;
     }
+
     /**
      * unicode 转换成 中文
      *
-     * @author fanhui 2007-3-15
      * @param theString
      * @return
+     * @author fanhui 2007-3-15
      */
     public static String decodeUnicode(String theString) {
         char aChar;
         int len = theString.length();
         StringBuffer outBuffer = new StringBuffer(len);
-        for (int x = 0; x < len;) {
+        for (int x = 0; x < len; ) {
             aChar = theString.charAt(x++);
             if (aChar == '\\') {
                 aChar = theString.charAt(x++);
@@ -349,7 +396,7 @@ public class IpUtils {
         String ip = "115.239.210.27";
         String address = "";
 
-        address = getAddresses("ip="+ip, "utf-8");
+        address = getAddresses("ip=" + ip, "utf-8");
 
         System.out.println(address);
     }

@@ -1,8 +1,10 @@
 package com.moxi.mogublog.xo.service;
 
-import com.moxi.mogublog.xo.entity.SystemConfig;
-import com.moxi.mogublog.xo.entity.WebConfig;
+import com.moxi.mogublog.commons.entity.SystemConfig;
+import com.moxi.mogublog.xo.vo.SystemConfigVO;
 import com.moxi.mougblog.base.service.SuperService;
+
+import java.util.List;
 
 /**
  * <p>
@@ -14,4 +16,24 @@ import com.moxi.mougblog.base.service.SuperService;
  */
 public interface SystemConfigService extends SuperService<SystemConfig> {
 
+    /**
+     * 获取系统配置
+     *
+     * @return
+     */
+    public SystemConfig getConfig();
+
+    /**
+     * 通过Key前缀清空Redis缓存
+     *
+     * @return
+     */
+    public String cleanRedisByKey(List<String> key);
+
+    /**
+     * 修改系统配置
+     *
+     * @return
+     */
+    public String editSystemConfig(SystemConfigVO systemConfigVO);
 }

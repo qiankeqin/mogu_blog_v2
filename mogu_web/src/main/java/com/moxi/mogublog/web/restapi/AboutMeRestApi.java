@@ -2,16 +2,20 @@ package com.moxi.mogublog.web.restapi;
 
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.moxi.mogublog.commons.entity.Admin;
+import com.moxi.mogublog.commons.entity.WebConfig;
+import com.moxi.mogublog.commons.feign.PictureFeignClient;
+import com.moxi.mogublog.utils.JsonUtils;
 import com.moxi.mogublog.utils.ResultUtil;
 import com.moxi.mogublog.utils.StringUtils;
-import com.moxi.mogublog.web.feign.PictureFeignClient;
 import com.moxi.mogublog.web.global.SQLConf;
 import com.moxi.mogublog.web.global.SysConf;
-import com.moxi.mogublog.web.util.WebUtils;
-import com.moxi.mogublog.xo.entity.Admin;
-import com.moxi.mogublog.xo.entity.WebConfig;
+import com.moxi.mogublog.web.log.BussinessLog;
 import com.moxi.mogublog.xo.service.AdminService;
 import com.moxi.mogublog.xo.service.WebConfigService;
+import com.moxi.mogublog.xo.utils.WebUtil;
+import com.moxi.mougblog.base.enums.EAccountType;
+import com.moxi.mougblog.base.enums.EBehavior;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -20,8 +24,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 /**
  * 关于我 RestApi
@@ -34,12 +38,9 @@ import javax.servlet.http.HttpServletRequest;
 @Api(value = "关于我 RestApi", tags = {"AboutMeRestApi"})
 @Slf4j
 public class AboutMeRestApi {
-    @Autowired
-    WebUtils webUtils;
+
     @Autowired
     AdminService adminService;
-    @Autowired
-    private PictureFeignClient pictureFeignClient;
 
     @Autowired
     WebConfigService webConfigService;
@@ -50,62 +51,20 @@ public class AboutMeRestApi {
      * @author xzx19950624@qq.com
      * @date 2018年11月6日下午8:57:48
      */
-
+    @BussinessLog(value = "关于我", behavior = EBehavior.VISIT_PAGE)
     @ApiOperation(value = "关于我", notes = "关于我")
     @GetMapping("/getMe")
-    public String getMe(HttpServletRequest request) {
+    public String getMe() {
 
-        QueryWrapper<Admin> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(SQLConf.USER_NAME, SysConf.ADMIN);
-        queryWrapper.last("LIMIT 1");
-        //清空密码，防止泄露
-        Admin admin = adminService.getOne(queryWrapper);
-        admin.setPassWord(null);
-        //获取图片
-        if (StringUtils.isNotEmpty(admin.getAvatar())) {
-            String pictureList = this.pictureFeignClient.getPicture(admin.getAvatar(), ",");
-            admin.setPhotoList(webUtils.getPicture(pictureList));
-        }
-        log.info("获取用户信息");
-        Admin result = new Admin();
-        result.setNickName(admin.getNickName());
-        result.setOccupation(admin.getOccupation());
-        result.setSummary(admin.getSummary());
-        result.setWeChat(admin.getWeChat());
-        result.setQqNumber(admin.getQqNumber());
-        result.setEmail(admin.getEmail());
-        result.setMobile(admin.getMobile());
-        result.setAvatar(admin.getAvatar());
-        result.setPhotoList(admin.getPhotoList());
-        result.setGithub(admin.getGithub());
-        result.setGitee(admin.getGitee());
-        return ResultUtil.result(SysConf.SUCCESS, result);
+        log.info("获取关于我的信息");
+        return ResultUtil.result(SysConf.SUCCESS, adminService.getAdminByUser(SysConf.ADMIN));
     }
 
     @ApiOperation(value = "获取联系方式", notes = "获取联系方式")
     @GetMapping("/getContact")
     public String getContact() {
-
-        QueryWrapper<WebConfig> queryWrapper = new QueryWrapper<>();
-
-        // getOne结果集为多个的时候，会抛异常，随机取一条加上限制条件 queryWrapper.last("LIMIT 1")
-        queryWrapper.last("LIMIT 1");
-        WebConfig webConfig = webConfigService.getOne(queryWrapper);
-
-        if (webConfig != null) {
-
-            WebConfig result = new WebConfig();
-            result.setWeChat(webConfig.getWeChat());
-            result.setQqNumber(webConfig.getQqNumber());
-            result.setQqGroup(webConfig.getQqGroup());
-            result.setEmail(webConfig.getEmail());
-            result.setGithub(webConfig.getGithub());
-            result.setGitee(webConfig.getGitee());
-            return ResultUtil.result(SysConf.SUCCESS, result);
-        } else {
-            return ResultUtil.result(SysConf.ERROR, "获取失败");
-        }
-
+        log.info("获取联系方式");
+        return ResultUtil.result(SysConf.SUCCESS, webConfigService.getWebConfigByShowList());
     }
 
 }

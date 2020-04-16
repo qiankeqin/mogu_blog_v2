@@ -30,37 +30,43 @@
     <el-table :data="tableData" style="width: 100%" @selection-change="handleSelectionChange">
       <el-table-column type="selection"></el-table-column>
 
-      <el-table-column label="序号" width="60">
+      <el-table-column label="序号" width="60" align="center">
         <template slot-scope="scope">
           <span>{{scope.$index + 1}}</span>
         </template>
       </el-table-column>
 
-      <el-table-column label="标签名" width="100">
+      <el-table-column label="标签名" width="100" align="center">
         <template slot-scope="scope">
           <span>{{ scope.row.content }}</span>
         </template>
       </el-table-column>
 
-      <el-table-column label="点击数" width="100">
+      <el-table-column label="点击数" width="100" align="center">
         <template slot-scope="scope">
           <span>{{ scope.row.clickCount }}</span>
         </template>
       </el-table-column>
 
-      <el-table-column label="创建时间" width="160">
+      <el-table-column label="排序" width="100" align="center">
+        <template slot-scope="scope">
+          <el-tag type="warning">{{ scope.row.sort }}</el-tag>
+        </template>
+      </el-table-column>
+
+      <el-table-column label="创建时间" width="160" align="center">
         <template slot-scope="scope">
           <span>{{ scope.row.createTime }}</span>
         </template>
       </el-table-column>
 
-      <el-table-column label="更新时间" width="160">
+      <el-table-column label="更新时间" width="160" align="center">
         <template slot-scope="scope">
           <span>{{ scope.row.updateTime }}</span>
         </template>
       </el-table-column>
 
-      <el-table-column label="状态" width="100">
+      <el-table-column label="状态" width="100" align="center">
         <template slot-scope="scope">
           <template v-if="scope.row.status == 1">
             <span>正常</span>
@@ -96,27 +102,16 @@
 
     <!-- 添加或修改对话框 -->
     <el-dialog :title="title" :visible.sync="dialogFormVisible">
-      <el-form :model="form">
-        <el-form-item v-if="isEditForm == true" label="标签UID" :label-width="formLabelWidth">
-          <el-input v-model="form.uid" auto-complete="off" disabled></el-input>
-        </el-form-item>
+      <el-form :model="form" :rules="rules" ref="form">
 
-        <el-form-item
-          v-if="isEditForm == false"
-          label="标签UID"
-          :label-width="formLabelWidth"
-          style="display: none;"
-        >
-          <el-input v-model="form.uid" auto-complete="off"></el-input>
-        </el-form-item>
-
-        <el-form-item label="标签名" :label-width="formLabelWidth">
+        <el-form-item label="标签名" :label-width="formLabelWidth" prop="content">
           <el-input v-model="form.content" auto-complete="off"></el-input>
         </el-form-item>
 
-        <!-- <el-form-item label="标签点击数" :label-width="formLabelWidth">
-		      <el-input v-model="form.clickCount" auto-complete="off"></el-input>
-        </el-form-item>-->
+        <el-form-item label="排序" :label-width="formLabelWidth" prop="sort">
+          <el-input v-model="form.sort" auto-complete="off"></el-input>
+        </el-form-item>
+
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogFormVisible = false">取 消</el-button>
@@ -151,9 +146,17 @@ export default {
       formLabelWidth: "120px",
       isEditForm: false,
       form: {
-        uid: null,
-        content: "",
-        clickCount: null
+        content: ""
+      },
+      rules: {
+        content: [
+          {required: true, message: '分类名称不能为空', trigger: 'blur'},
+          {min: 1, max: 10, message: '长度在1到10个字符'},
+        ],
+        sort: [
+          {required: true, message: '排序字段不能为空', trigger: 'blur'},
+          {pattern: /^[0-9]\d*$/, message: '排序字段只能为自然数'},
+        ]
       }
     };
   },
@@ -179,7 +182,8 @@ export default {
       var formObject = {
         uid: null,
         content: null,
-        clickCount: 0
+        clickCount: 0,
+        sort: 0
       };
       return formObject;
     },
@@ -294,11 +298,17 @@ export default {
           var params = [];
           params.push(row);
           deleteBatchTag(params).then(response => {
-            console.log(response);
-            this.$message({
-              type: "success",
-              message: response.data
-            });
+            if(response.code == "success") {
+              this.$message({
+                type: "success",
+                message: response.data
+              });
+            } else {
+              this.$message({
+                type: "error",
+                message: response.data
+              });
+            }
             that.tagList();
           });
         })
@@ -326,11 +336,17 @@ export default {
       })
         .then(() => {
           deleteBatchTag(that.multipleSelection).then(response => {
-            console.log(response);
-            this.$message({
-              type: "success",
-              message: response.data
-            });
+            if(response.code == "success") {
+              this.$message({
+                type: "success",
+                message: response.data
+              });
+            } else {
+              this.$message({
+                type: "error",
+                message: response.data
+              });
+            }
             that.tagList();
           });
         })
@@ -346,42 +362,48 @@ export default {
       this.tagList();
     },
     submitForm: function() {
-
-      if (this.isEditForm) {
-        editTag(this.form).then(response => {
-          console.log(response);
-          if (response.code == "success") {
-            this.$message({
-              type: "success",
-              message: response.data
+      this.$refs.form.validate((valid) => {
+        if(!valid) {
+          console.log('校验失败')
+          return;
+        } else {
+          if (this.isEditForm) {
+            editTag(this.form).then(response => {
+              console.log(response);
+              if (response.code == "success") {
+                this.$message({
+                  type: "success",
+                  message: response.data
+                });
+                this.dialogFormVisible = false;
+                this.tagList();
+              } else {
+                this.$message({
+                  type: "error",
+                  message: response.data
+                });
+              }
             });
-            this.dialogFormVisible = false;
-            this.tagList();
           } else {
-            this.$message({
-              type: "error",
-              message: response.data
+            addTag(this.form).then(response => {
+              console.log(response);
+              if (response.code == "success") {
+                this.$message({
+                  type: "success",
+                  message: response.data
+                });
+                this.dialogFormVisible = false;
+                this.tagList();
+              } else {
+                this.$message({
+                  type: "error",
+                  message: response.data
+                });
+              }
             });
           }
-        });
-      } else {
-        addTag(this.form).then(response => {
-          console.log(response);
-          if (response.code == "success") {
-            this.$message({
-              type: "success",
-              message: response.data
-            });
-            this.dialogFormVisible = false;
-            this.tagList();
-          } else {
-            this.$message({
-              type: "error",
-              message: response.data
-            });
-          }
-        });
-      }
+        }
+      })
     },
     // 改变多选
     handleSelectionChange(val) {

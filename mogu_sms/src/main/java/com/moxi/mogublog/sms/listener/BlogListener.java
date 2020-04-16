@@ -49,7 +49,6 @@ public class BlogListener {
             stringRedisTemplate.opsForValue().set(SysConf.BLOG_LEVEL + SysConf.REDIS_SEGMENTATION + SysConf.FOUR, "");
             stringRedisTemplate.opsForValue().set(SysConf.HOT_BLOG, "");
             stringRedisTemplate.opsForValue().set(SysConf.NEW_BLOG, "");
-
             switch (comment) {
                 case SysConf.DELETE_BATCH: {
 
@@ -61,7 +60,7 @@ public class BlogListener {
 //                    searchFeignClient.deleteElasticSearchByUids(uid);
 
                     // 删除Solr博客索引
-                    searchFeignClient.deleteSolrIndexByUids(uid);
+//                    searchFeignClient.deleteSolrIndexByUids(uid);
 
                 }
                 break;
@@ -81,7 +80,7 @@ public class BlogListener {
 //                    searchFeignClient.addElasticSearchIndexByUid(uid);
 
                     // 增加solr索引
-                    searchFeignClient.addSolrIndexByUid(uid);
+//                    searchFeignClient.addSolrIndexByUid(uid);
                 }
                 break;
 
@@ -93,7 +92,7 @@ public class BlogListener {
 //                    searchFeignClient.addElasticSearchIndexByUid(uid);
 
                     // 更新Solr索引
-                    searchFeignClient.updateSolrIndexByUid(uid);
+//                    searchFeignClient.updateSolrIndexByUid(uid);
                 }
                 break;
 
@@ -105,7 +104,7 @@ public class BlogListener {
 //                    searchFeignClient.deleteElasticSearchByUid(uid);
 
                     // 删除Solr索引
-                    searchFeignClient.deleteSolrIndexByUid(uid);
+//                    searchFeignClient.deleteSolrIndexByUid(uid);
                 }
                 break;
             }
@@ -119,10 +118,10 @@ public class BlogListener {
             String level = map.get(SysConf.LEVEL);
             String createTime = map.get(SysConf.CREATE_TIME);
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM");
-            Date myString = DateFormat.getDateTimeInstance().parse(createTime);
-            String sd = sdf.format(myString);
+//            Date myString = DateFormat.getDateTimeInstance().parse(createTime);
+//            String sd = sdf.format(myString);
 
-//        String sd = sdf.format(new Date(Long.parseLong(String.valueOf(createTime))));
+            String sd = sdf.format(new Date(Long.parseLong(String.valueOf(createTime))));
             String[] list = sd.split("-");
             System.out.println(createTime);
             String year = list[0];

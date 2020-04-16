@@ -4,19 +4,22 @@ package com.moxi.mogublog.admin.restapi;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.moxi.mogublog.admin.feign.PictureFeignClient;
 import com.moxi.mogublog.admin.global.MessageConf;
+import com.moxi.mogublog.admin.global.RedisConf;
 import com.moxi.mogublog.admin.global.SQLConf;
 import com.moxi.mogublog.admin.global.SysConf;
 import com.moxi.mogublog.admin.log.OperationLogger;
-import com.moxi.mogublog.admin.util.WebUtils;
+import com.moxi.mogublog.admin.security.AuthorityVerify;
+import com.moxi.mogublog.commons.entity.Admin;
+import com.moxi.mogublog.commons.entity.Role;
+import com.moxi.mogublog.commons.feign.PictureFeignClient;
 import com.moxi.mogublog.utils.CheckUtils;
+import com.moxi.mogublog.utils.RedisUtil;
 import com.moxi.mogublog.utils.ResultUtil;
 import com.moxi.mogublog.utils.StringUtils;
-import com.moxi.mogublog.xo.entity.Admin;
-import com.moxi.mogublog.xo.entity.Role;
 import com.moxi.mogublog.xo.service.AdminService;
 import com.moxi.mogublog.xo.service.RoleService;
+import com.moxi.mogublog.xo.utils.WebUtil;
 import com.moxi.mougblog.base.enums.EStatus;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -29,7 +32,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 
@@ -48,8 +50,9 @@ import java.util.*;
 public class AdminRestApi {
 
     @Autowired
-    WebUtils webUtils;
-
+    WebUtil webUtil;
+    @Autowired
+    RedisUtil redisUtil;
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
     @Autowired
@@ -61,6 +64,7 @@ public class AdminRestApi {
     @Value(value = "${DEFAULE_PWD}")
     private String DEFAULE_PWD;
 
+    @AuthorityVerify
     @ApiOperation(value = "获取管理员列表", notes = "获取管理员列表")
     @GetMapping("/getList")
     public String getList(HttpServletRequest request,
@@ -70,7 +74,9 @@ public class AdminRestApi {
 
         QueryWrapper<Admin> queryWrapper = new QueryWrapper<>();
         String pictureResult = null;
-        queryWrapper.like(SQLConf.USER_NAME, keyword).or().like(SQLConf.NICK_NAME, keyword.trim());
+        if (StringUtils.isNotEmpty(keyword)) {
+            queryWrapper.like(SQLConf.USER_NAME, keyword).or().like(SQLConf.NICK_NAME, keyword.trim());
+        }
         Page<Admin> page = new Page<>();
         page.setCurrent(currentPage);
         page.setSize(pageSize);
@@ -91,7 +97,7 @@ public class AdminRestApi {
         if (fileUids != null) {
             pictureResult = this.pictureFeignClient.getPicture(fileUids.toString(), SysConf.FILE_SEGMENTATION);
         }
-        List<Map<String, Object>> picList = webUtils.getPictureMap(pictureResult);
+        List<Map<String, Object>> picList = webUtil.getPictureMap(pictureResult);
 
         picList.forEach(item -> {
             pictureMap.put(item.get(SQLConf.UID).toString(), item.get(SQLConf.URL).toString());
@@ -119,6 +125,7 @@ public class AdminRestApi {
         return ResultUtil.result(SysConf.SUCCESS, pageList);
     }
 
+    @AuthorityVerify
     @OperationLogger(value = "重置用户密码")
     @ApiOperation(value = "重置用户密码", notes = "重置用户密码")
     @PostMapping("/restPwd")
@@ -132,11 +139,13 @@ public class AdminRestApi {
         Admin admin = adminService.getById(uid);
         PasswordEncoder encoder = new BCryptPasswordEncoder();
         admin.setPassWord(encoder.encode(DEFAULE_PWD));
+        admin.setUpdateTime(new Date());
         admin.updateById();
 
         return ResultUtil.result(SysConf.SUCCESS, MessageConf.UPDATE_SUCCESS);
     }
 
+    @AuthorityVerify
     @OperationLogger(value = "注册管理员")
     @ApiOperation(value = "注册管理员", notes = "注册管理员")
     @PostMapping("/add")
@@ -188,6 +197,7 @@ public class AdminRestApi {
         return ResultUtil.result(SysConf.ERROR, "管理员账户已存在");
     }
 
+    @AuthorityVerify
     @OperationLogger(value = "更新管理员基本信息")
     @ApiOperation(value = "更新管理员基本信息", notes = "更新管理员基本信息")
     @PostMapping("/edit")
@@ -199,31 +209,38 @@ public class AdminRestApi {
         }
         Admin admin = adminService.getById(updateBody.getUid());
         if (admin != null) {
+
             //判断修改的对象是否是超级管理员，超级管理员不能修改用户名
             if (admin.getUserName().equals(SysConf.ADMIN) && !updateBody.getUserName().equals(SysConf.ADMIN)) {
                 return ResultUtil.result(SysConf.ERROR, "超级管理员用户名必须为admin");
             }
-
-            QueryWrapper<Admin> queryWrapper = new QueryWrapper<Admin>();
-            queryWrapper.eq(SQLConf.USER_NAME, updateBody.getUserName()).or().eq(SQLConf.EMAIL, updateBody.getEmail()).or().eq(SQLConf.MOBILE, updateBody.getMobile());
+            QueryWrapper<Admin> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq(SQLConf.STATUS, EStatus.ENABLE);
+            queryWrapper.eq(SQLConf.USER_NAME, updateBody.getUserName());
             List<Admin> adminList = adminService.list(queryWrapper);
             if (adminList != null) {
                 for (Admin item : adminList) {
                     if (item.getUid().equals(updateBody.getUid())) {
                         continue;
                     } else {
-                        return ResultUtil.result(SysConf.ERROR, "修改失败：用户名存在，手机号已注册，邮箱已经注册");
+                        return ResultUtil.result(SysConf.ERROR, "修改失败，用户名存在");
                     }
                 }
             }
-
         }
         updateBody.setPassWord(null);
+        updateBody.setUpdateTime(new Date());
         updateBody.updateById();
+
+        // 修改成功后，判断是否更改了RoleUid，更新redis中admin的URL访问路径
+        if (!admin.getRoleUid().equals(updateBody.getRoleUid())) {
+            redisUtil.delete(RedisConf.ADMIN_VISIT_MENU + RedisConf.SEGMENTATION + admin.getUid());
+        }
 
         return ResultUtil.result(SysConf.SUCCESS, "更新管理员成功");
     }
 
+    @AuthorityVerify
     @OperationLogger(value = "更新管理员邮箱或手机号")
     @ApiOperation(value = "更新管理员邮箱或手机号", notes = "更新管理员邮箱或手机号")
     @PostMapping("/updateEmail")
@@ -263,17 +280,26 @@ public class AdminRestApi {
         return ResultUtil.result(SysConf.ERROR, "验证码错误");
     }
 
+    @AuthorityVerify
     @OperationLogger(value = "删除部分管理员信息")
     @ApiOperation(value = "删除部分管理员信息", notes = "删除部分管理员信息")
     @PostMapping("/delete")
     public String delete(HttpServletRequest request,
                          @ApiParam(name = "adminUids", value = "管理员uid集合", required = true) @RequestParam(name = "adminUids", required = true) List<String> adminUids) {
-        QueryWrapper<Admin> queryWrapper = new QueryWrapper<>();
+
         if (adminUids.isEmpty()) {
             return ResultUtil.result(SysConf.ERROR, "管理员uid不能为空");
         }
-        queryWrapper.in(SQLConf.UID, adminUids);
-        adminService.remove(queryWrapper);
+        Collection<Admin> adminList = adminService.listByIds(adminUids);
+
+        for (Admin admin : adminList) {
+            if (SysConf.ADMIN.equals(admin.getUserName())) {
+                return ResultUtil.result(SysConf.ERROR, "无法删除Admin账号");
+            }
+            admin.setUpdateTime(new Date());
+            admin.setStatus(EStatus.DISABLED);
+        }
+        adminService.updateBatchById(adminList);
         return ResultUtil.result(SysConf.SUCCESS, "删除管理员成功");
     }
 

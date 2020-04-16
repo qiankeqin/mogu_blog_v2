@@ -3,14 +3,16 @@
     <div v-for="item in comments" :key="item.uid">
       <div class="commentList">
         <span class="left p1">
-          <img v-if="item.user" :src="item.user.photoUrl ? PICTURE_HOST + item.user.photoUrl:'https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif'" />
+          <img v-if="item.user" :src="item.user.photoUrl ? PICTURE_HOST + item.user.photoUrl:'https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif'" onerror="onerror=null;src='https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif'" />
           <img v-else src="https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif" />
         </span>
 
         <span class="right p1">
           <div class="rightTop" v-if="item.user">
             <el-link class="userName" :underline="false">{{item.user.nickName}}</el-link>
-            <span class="timeAgo">{{timeAgo(item.createTime)}}</span>
+            <el-tag style="height: 30px; margin-left:5px;" v-for="userTag in userTagDictList" :key="userTag.uid" v-if="item.user.userTag == userTag.dictValue && item.user.userTag != 0" :type="userTag.listClass">{{userTag.dictLabel}}</el-tag>
+            <span class="timeAgo" v-if="item.createTime">{{timeAgo(item.createTime)}}</span>
+            <span class="timeAgo" v-else>刚刚</span>
           </div>
 
           <div class="rightCenter">
@@ -40,8 +42,9 @@
 
   import {mapMutations} from 'vuex';
   import CommentBox from "../CommentBox";
+  import {dateFormat, timeAgo, formatData} from "../../utils/webUtils"
   import {addComment, deleteComment, getCommentList, reportComment} from "../../api/comment";
-
+  import {getListByDictTypeList} from "@/api/sysDictData"
   export default {
     name: "CommentList",
     props: ['comments', 'userInfos', 'commentInfo'],
@@ -55,11 +58,12 @@
           uid: "",
           commentUid: ""
         },
-        userInfo: {}
+        userInfo: {},
+        userTagDictList: [], // 用户标签字典
       };
     },
     created() {
-
+      this.getDictList()
     },
     components: {
       CommentBox
@@ -69,7 +73,24 @@
     },
     compute: {},
     methods: {
-      ...mapMutations(['setCommentList', 'increment']),
+      ...mapMutations(['setCommentList', 'setUserTag']),
+      /**
+       * 字典查询
+       */
+      getDictList: function () {
+        if(this.$store.state.app.userTagDictList.length > 0) {
+          this.userTagDictList = this.$store.state.app.userTagDictList
+          return;
+        }
+        var dictTypeList =  ['sys_user_tag']
+        getListByDictTypeList(dictTypeList).then(response => {
+          if (response.code == "success") {
+            var dictMap = response.data;
+            this.userTagDictList = dictMap.sys_user_tag.list
+            this.setUserTag(dictMap.sys_user_tag.list)
+          }
+        });
+      },
       replyTo: function (item) {
         if(!this.validLogin()) {
           this.$notify.error({
@@ -106,10 +127,9 @@
               commentData.user = this.userInfo;
               // 设置回复为空
               commentData.replyList = [];
-
               commentData.user = this.$store.state.user.userInfo
               this.updateCommentList(comments, commentData.toUid, commentData)
-
+              console.log('得到的评论', comments)
               this.$store.commit("setCommentList", comments);
 
               this.$notify({
@@ -252,62 +272,7 @@
        * @returns {string}
        */
       timeAgo(dateTimeStamp) {
-        let result = "";
-        let minute = 1000 * 60;      //把分，时，天，周，半个月，一个月用毫秒表示
-        let hour = minute * 60;
-        let day = hour * 24;
-        let week = day * 7;
-        let halfamonth = day * 15;
-        let month = day * 30;
-        let now = new Date().getTime();   //获取当前时间毫秒
-        dateTimeStamp = dateTimeStamp.substring(0, 18);
-        //必须把日期'-'转为'/'
-        dateTimeStamp = dateTimeStamp.replace(/-/g, '/');
-
-        let timestamp = new Date(dateTimeStamp).getTime();
-
-        let diffValue = now - timestamp;//时间差
-
-        if (diffValue < 0) {
-          return result;
-        }
-        let minC = diffValue / minute;  //计算时间差的分，时，天，周，月
-        let hourC = diffValue / hour;
-        let dayC = diffValue / day;
-        let weekC = diffValue / week;
-        let monthC = diffValue / month;
-
-        minC = parseInt(minC)
-        hourC = parseInt(hourC)
-        dayC = parseInt(dayC)
-        weekC = parseInt(weekC)
-        monthC = parseInt(monthC)
-
-
-        if (monthC >= 1 && monthC <= 3) {
-          result = " " + parseInt(monthC) + "月前"
-        } else if (weekC >= 1 && weekC <= 3) {
-          result = " " + parseInt(weekC) + "周前"
-        } else if (dayC >= 1 && dayC <= 6) {
-          result = " " + parseInt(dayC) + "天前"
-        } else if (hourC >= 1 && hourC <= 23) {
-          result = " " + parseInt(hourC) + "小时前"
-        } else if (minC >= 1 && minC <= 59) {
-          result = " " + parseInt(minC) + "分钟前"
-        } else if (diffValue >= 0 && diffValue <= minute) {
-          result = "刚刚"
-        } else {
-          let datetime = new Date();
-          datetime.setTime(dateTimeStamp);
-          let Nyear = datetime.getFullYear();
-          let Nmonth = datetime.getMonth() + 1 < 10 ? "0" + (datetime.getMonth() + 1) : datetime.getMonth() + 1;
-          let Ndate = datetime.getDate() < 10 ? "0" + datetime.getDate() : datetime.getDate();
-          let Nhour = datetime.getHours() < 10 ? "0" + datetime.getHours() : datetime.getHours();
-          let Nminute = datetime.getMinutes() < 10 ? "0" + datetime.getMinutes() : datetime.getMinutes();
-          let Nsecond = datetime.getSeconds() < 10 ? "0" + datetime.getSeconds() : datetime.getSeconds();
-          result = Nyear + "-" + Nmonth + "-" + Ndate
-        }
-        return result;
+        return timeAgo(dateTimeStamp)
       },
       updateCommentList(commentList, uid, targetComment) {
         if (commentList == undefined || commentList.length <= 0) {
@@ -388,6 +353,7 @@
   .commentList .rightCenter {
     margin-left: 20px;
     height: 50px;
+    margin-top: 15px;
   }
   .commentList .rightBottom {
     margin-left: 10px;

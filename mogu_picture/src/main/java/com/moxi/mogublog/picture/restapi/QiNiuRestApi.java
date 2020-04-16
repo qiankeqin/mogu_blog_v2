@@ -1,7 +1,7 @@
 package com.moxi.mogublog.picture.restapi;
 
 import com.google.gson.Gson;
-import com.moxi.mogublog.picture.feign.AdminFeignClient;
+import com.moxi.mogublog.commons.feign.AdminFeignClient;
 import com.moxi.mogublog.picture.global.SysConf;
 import com.moxi.mogublog.picture.service.FileService;
 import com.moxi.mogublog.picture.service.QiniuService;
@@ -104,19 +104,19 @@ public class QiNiuRestApi {
         UploadManager uploadManager = new UploadManager(cfg);
 
         //AccessKey的值
-        String accessKey = "QKD378sek_yRy0AlpWEzT_U_oni0SfrrxaP2lgWX";
+        String accessKey = "XXXXXXXXXXXXXXXXXXXXXXXXXXX";
 
         //SecretKey的值
-        String secretKey = "Vjh0zPBLrflxYn08YNIG4rkRYv7sqtlMccgd8QzL";
+        String secretKey = "XXXXXXXXXXXXXXXXXXXXXXXXXXX";
 
         //存储空间名
-        String bucket = "mogublog";
+        String bucket = "XXXXXXXXXXX";
 
         //上传图片路径
-        String localFilePath = "D:\\1000.jpg";
+        String localFilePath = "D:\\1582507567527.png";
 
         //在七牛云中图片的命名
-        String key = "1000.png";
+        String key = "1582507567527.png";
         Auth auth = Auth.create(accessKey, secretKey);
         String upToken = auth.uploadToken(bucket);
         try {

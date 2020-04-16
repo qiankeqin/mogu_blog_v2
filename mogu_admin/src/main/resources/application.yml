@@ -21,7 +21,7 @@ file:
 moguBlog:
   email: mogublog@163.com
 
-# 蘑菇博客后台登录默认密码
+# 蘑菇博客登录默认密码
 DEFAULE_PWD: mogu2018
 
 #博客相关配置
@@ -38,6 +38,8 @@ spring:
   jackson:
     serialization:
       INDENT_OUTPUT: true
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: Asia/Shanghai
   jmx:
     default-domain: mogu_admin
   thymeleaf:
@@ -49,12 +51,22 @@ spring:
       name: user
       password: password123
 
+  # sleuth 配置
+  sleuth:
+    web:
+      client:
+        enabled: true
+    sampler:
+      probability: 1.0 # 采样比例为: 0.1(即10%),设置的值介于0.0到1.0之间，1.0则表示全部采集。
+  # zipkin 配置
+  zipkin:
+    base-url: http://localhost:9411  # 指定了Zipkin服务器的地址
 
   # DATABASE CONFIG
   datasource:
     username: root
     password: root
-    url: jdbc:mysql://localhost:3306/mogu_blog?useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&transformedBitIsBoolean=true&useSSL=false&serverTimezone=GMT%2B8
+    url: jdbc:mysql://localhost:3306/mogu_blog?useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&transformedBitIsBoolean=true&useSSL=false&serverTimezone=Asia/Shanghai
     driver-class-name: com.mysql.cj.jdbc.Driver
     type: com.alibaba.druid.pool.DruidDataSource
 
@@ -108,6 +120,8 @@ spring:
         url: http://localhost:8606
         username: user
         password: password123
+        instance:
+          service-base-url: http://localhost:8601
 
 #eureka相关配置
 eureka:
@@ -124,7 +138,7 @@ eureka:
     lease-renewal-interval-in-seconds: 5
 
 # 或者：
-feign.hystrix.enabled: false ## 索性禁用feign的hystrix支持
+feign.hystrix.enabled: false #索性禁用feign的hystrix支持
 
 management:
   endpoints:
@@ -139,7 +153,7 @@ management:
 mybatis-plus:
   mapper-locations: classpath:/mapper/*Mapper.xml
   #实体扫描，多个package用逗号或者分号分隔
-  typeAliasesPackage: com.moxi.mogublog.xo.entity
+  typeAliasesPackage: com.moxi.mogublog.commons.entity
   global-config:
     # 数据库相关配置
     db-config:
@@ -170,4 +184,4 @@ audience:
   clientId: 098f6bcd4621d373cade4e832627b4f6
   base64Secret: MDk4ZjZiY2Q0NjIxZDM3M2NhZGU0ZTgzMjYyN2I0ZjY=
   name: mogublog
-  expiresSecond: 3600  #1个小时
+  expiresSecond: 3600  #1个小时 3600

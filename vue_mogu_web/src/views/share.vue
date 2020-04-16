@@ -41,8 +41,6 @@
 </template>
 
 <script>
-
-import { recorderVisitPage } from "../api/index";
 import { getStudyVideoBySort } from "../api/resource";
 
 export default {
@@ -61,7 +59,6 @@ export default {
   },
   created() {
     getStudyVideoBySort().then(response => {
-      console.log(response);
       if (response.code == "success") {
         this.studyVideoData = response.data.records;
         this.total = response.data.total;
@@ -70,9 +67,6 @@ export default {
       }
     });
 
-    var params = new URLSearchParams();
-    params.append("pageName", "SHARE");
-    recorderVisitPage(params).then(response => {});
   }
 };
 </script>

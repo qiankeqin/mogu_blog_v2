@@ -5,12 +5,12 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.moxi.mogublog.admin.global.SQLConf;
 import com.moxi.mogublog.admin.global.SysConf;
 import com.moxi.mogublog.admin.log.OperationLogger;
+import com.moxi.mogublog.commons.entity.Admin;
 import com.moxi.mogublog.config.jwt.Audience;
 import com.moxi.mogublog.config.jwt.JwtHelper;
 import com.moxi.mogublog.utils.CheckUtils;
 import com.moxi.mogublog.utils.ResultUtil;
 import com.moxi.mogublog.utils.StringUtils;
-import com.moxi.mogublog.xo.entity.Admin;
 import com.moxi.mogublog.xo.service.AdminService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -75,11 +75,11 @@ public class AuthRestApi {
             return ResultUtil.result(SysConf.ERROR, "邮箱和手机号至少一项不能为空");
         }
 
-        //手机号为空时为邮箱注册
+        //手机号为空时为邮箱注册 从redis中获取验证码
         if (StringUtils.isEmpty(mobile) && CheckUtils.checkEmail(email)) {
-            validCode = stringRedisTemplate.opsForValue().get(email);//从redis中获取验证码
+            validCode = stringRedisTemplate.opsForValue().get(email);
         } else if (StringUtils.isEmpty(email) && CheckUtils.checkMobileNumber(mobile)) {
-            validCode = stringRedisTemplate.opsForValue().get(mobile);//从redis中获取验证码
+            validCode = stringRedisTemplate.opsForValue().get(mobile);
         } else {
             return ResultUtil.result(SysConf.ERROR, "邮箱或手机号格式有误");
         }

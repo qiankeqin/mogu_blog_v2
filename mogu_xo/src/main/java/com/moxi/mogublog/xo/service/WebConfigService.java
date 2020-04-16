@@ -1,6 +1,7 @@
 package com.moxi.mogublog.xo.service;
 
-import com.moxi.mogublog.xo.entity.WebConfig;
+import com.moxi.mogublog.commons.entity.WebConfig;
+import com.moxi.mogublog.xo.vo.WebConfigVO;
 import com.moxi.mougblog.base.service.SuperService;
 
 /**
@@ -13,4 +14,24 @@ import com.moxi.mougblog.base.service.SuperService;
  */
 public interface WebConfigService extends SuperService<WebConfig> {
 
+    /**
+     * 获取网站配置
+     *
+     * @return
+     */
+    public WebConfig getWebConfig();
+
+    /**
+     * 通过显示列表获取配置
+     * @return
+     */
+    public WebConfig getWebConfigByShowList();
+
+    /**
+     * 修改网站配置
+     *
+     * @param webConfigVO
+     * @return
+     */
+    public String editWebConfig(WebConfigVO webConfigVO);
 }

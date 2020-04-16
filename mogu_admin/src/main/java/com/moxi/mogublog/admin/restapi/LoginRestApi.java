@@ -1,23 +1,24 @@
 package com.moxi.mogublog.admin.restapi;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.moxi.mogublog.admin.feign.PictureFeignClient;
 import com.moxi.mogublog.admin.global.MessageConf;
 import com.moxi.mogublog.admin.global.SQLConf;
 import com.moxi.mogublog.admin.global.SysConf;
-import com.moxi.mogublog.admin.util.WebUtils;
+import com.moxi.mogublog.commons.entity.Admin;
+import com.moxi.mogublog.commons.entity.CategoryMenu;
+import com.moxi.mogublog.commons.entity.Role;
+import com.moxi.mogublog.commons.feign.PictureFeignClient;
 import com.moxi.mogublog.config.jwt.Audience;
 import com.moxi.mogublog.config.jwt.JwtHelper;
 import com.moxi.mogublog.utils.CheckUtils;
 import com.moxi.mogublog.utils.IpUtils;
 import com.moxi.mogublog.utils.ResultUtil;
 import com.moxi.mogublog.utils.StringUtils;
-import com.moxi.mogublog.xo.entity.Admin;
-import com.moxi.mogublog.xo.entity.CategoryMenu;
-import com.moxi.mogublog.xo.entity.Role;
 import com.moxi.mogublog.xo.service.AdminService;
 import com.moxi.mogublog.xo.service.CategoryMenuService;
 import com.moxi.mogublog.xo.service.RoleService;
+import com.moxi.mogublog.xo.utils.WebUtil;
+import com.moxi.mougblog.base.enums.EMenuType;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -28,7 +29,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 
@@ -47,7 +47,7 @@ import java.util.*;
 public class LoginRestApi {
 
     @Autowired
-    WebUtils webUtils;
+    WebUtil webUtil;
 
     @Autowired
     private AdminService adminService;
@@ -153,9 +153,9 @@ public class LoginRestApi {
         //获取图片
         if (StringUtils.isNotEmpty(admin.getAvatar())) {
             String pictureList = this.pictureFeignClient.getPicture(admin.getAvatar(), SysConf.FILE_SEGMENTATION);
-            admin.setPhotoList(webUtils.getPicture(pictureList));
+            admin.setPhotoList(webUtil.getPicture(pictureList));
 
-            List<String> list = webUtils.getPicture(pictureList);
+            List<String> list = webUtil.getPicture(pictureList);
 
             if (list.size() > 0) {
                 map.put(SysConf.AVATAR, list.get(0));
@@ -200,28 +200,46 @@ public class LoginRestApi {
         });
 
         Collection<CategoryMenu> categoryMenuList = categoryMenuService.listByIds(categoryMenuUids);
+        // 从三级级分类中查询出 二级分类
+        List<CategoryMenu> buttonList = new ArrayList<>();
+        Set<String> secondMenuUidList = new HashSet<>();
+        categoryMenuList.forEach(item -> {
+            // 查询二级分类
+            if (item.getMenuType() == EMenuType.MENU && item.getMenuLevel() == SysConf.TWO) {
+                secondMenuUidList.add(item.getUid());
+            }
+            // 从三级分类中，得到二级分类
+            if (item.getMenuType() == EMenuType.BUTTON && StringUtils.isNotEmpty(item.getParentUid())) {
+                secondMenuUidList.add(item.getParentUid());
+            }
+        });
 
-        List<CategoryMenu> childCategoryMenuList = new ArrayList<>();
+        Collection<CategoryMenu> childCategoryMenuList = new ArrayList<>();
+        Collection<CategoryMenu> parentCategoryMenuList = new ArrayList<>();
         List<String> parentCategoryMenuUids = new ArrayList<>();
 
-        categoryMenuList.forEach(item -> {
+        if (secondMenuUidList.size() > 0) {
+            childCategoryMenuList = categoryMenuService.listByIds(secondMenuUidList);
+        }
 
+        childCategoryMenuList.forEach(item -> {
             //选出所有的二级分类
-            if (item.getMenuLevel() == 2) {
+            if (item.getMenuLevel() == SysConf.TWO) {
 
                 if (StringUtils.isNotEmpty(item.getParentUid())) {
                     parentCategoryMenuUids.add(item.getParentUid());
                 }
-                childCategoryMenuList.add(item);
             }
-
         });
 
-        Collection<CategoryMenu> parentCategoryMenuList = categoryMenuService.listByIds(parentCategoryMenuUids);
+        if (parentCategoryMenuUids.size() > 0) {
+            parentCategoryMenuList = categoryMenuService.listByIds(parentCategoryMenuUids);
+        }
+
         List<CategoryMenu> list = new ArrayList<>(parentCategoryMenuList);
+
         //对parent进行排序
         Collections.sort(list);
-
         map.put(SysConf.PARENT_LIST, list);
         map.put(SysConf.SON_LIST, childCategoryMenuList);
         return ResultUtil.result(SysConf.SUCCESS, map);

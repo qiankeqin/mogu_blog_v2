@@ -1,6 +1,6 @@
 package com.moxi.mogublog.xo.mapper;
 
-import com.moxi.mogublog.xo.entity.WebVisit;
+import com.moxi.mogublog.commons.entity.WebVisit;
 import com.moxi.mougblog.base.mapper.SuperMapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
@@ -14,9 +14,20 @@ import java.util.Map;
  * </p>
  *
  * @author xuzhixiang
- * @since 2018年12月8日09:43:25
+ * @date 2018年12月8日09:43:25
  */
 public interface WebVisitMapper extends SuperMapper<WebVisit> {
+
+
+    /**
+     * 获取IP数目
+     *
+     * @param startTime
+     * @param endTime
+     * @return
+     */
+    @Select("SELECT COUNT(ip) FROM (SELECT ip FROM t_web_visit WHERE create_time >= #{startTime} AND create_time <= #{endTime} GROUP BY ip) AS tmp")
+    Integer getIpCount(@Param("startTime") String startTime, @Param("endTime") String endTime);
 
     /**
      * 统计最近七天内的访问量(PV)
